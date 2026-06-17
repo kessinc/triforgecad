@@ -213,6 +213,10 @@ const SHAPE_INFO = {
     terrain:  { label:'Arazi',    color:0xa1887f },
     stairs:   { label:'Merdiven', color:0xe0e0e0 },
     wall:     { label:'Duvar',    color:0x90a4ae },
+    house:    { label:'Ev',       color:0xffb74d },
+    sword:    { label:'Kılıç',     color:0xe0e0e0 },
+    tower:    { label:'Kule',     color:0xb0bec5 },
+    rock:     { label:'Kaya',     color:0xa1887f },
 };
 
 function buildGeo(type, p = {}) {
@@ -338,18 +342,62 @@ function buildGeo(type, p = {}) {
             const merged = mergeBufferGeometries([leftBox, rightBox, topBox]);
             return { geo: merged || leftBox, params: { w, h, t } };
         }
+        case 'house': {
+            const base = new THREE.BoxGeometry(s*0.8, s*0.6, s*0.8); base.translate(0, s*0.3, 0);
+            const roof = new THREE.ConeGeometry(s*0.65, s*0.4, 4); roof.rotateY(Math.PI/4); roof.translate(0, s*0.8, 0);
+            const chimney = new THREE.BoxGeometry(s*0.12, s*0.3, s*0.12); chimney.translate(s*0.22, s*0.65, -s*0.22);
+            const merged = mergeBufferGeometries([base, roof, chimney]);
+            return { geo: merged || base, params: {} };
+        }
+        case 'sword': {
+            const blade = new THREE.BoxGeometry(s*0.08, s*0.8, s*0.03); blade.translate(0, s*0.5, 0);
+            const guard = new THREE.BoxGeometry(s*0.3, s*0.06, s*0.06); guard.translate(0, s*0.1, 0);
+            const hilt = new THREE.CylinderGeometry(s*0.03, s*0.03, s*0.2, 8); hilt.translate(0, 0, 0);
+            const pommel = new THREE.SphereGeometry(s*0.05, 8, 8); pommel.translate(0, -s*0.12, 0);
+            const merged = mergeBufferGeometries([blade, guard, hilt, pommel]);
+            return { geo: merged || blade, params: {} };
+        }
+        case 'tower': {
+            const base = new THREE.CylinderGeometry(s*0.4, s*0.4, s*0.8, 12); base.translate(0, s*0.4, 0);
+            const top = new THREE.CylinderGeometry(s*0.48, s*0.48, s*0.2, 12); top.translate(0, s*0.9, 0);
+            const battlements = [];
+            for (let i = 0; i < 4; i++) {
+                const angle = (i / 4) * Math.PI * 2;
+                const bat = new THREE.BoxGeometry(s*0.12, s*0.1, s*0.12);
+                bat.translate(Math.cos(angle)*s*0.4, s*1.05, Math.sin(angle)*s*0.4);
+                battlements.push(bat);
+            }
+            const merged = mergeBufferGeometries([base, top, ...battlements]);
+            return { geo: merged || base, params: {} };
+        }
+        case 'rock': {
+            const rockGeo = new THREE.DodecahedronGeometry(s/2, 1);
+            const pos = rockGeo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const vx = pos.getX(i);
+                const vy = pos.getY(i);
+                const vz = pos.getZ(i);
+                const scaleFactor = 0.8 + 0.3 * Math.sin(vx * 15 + vy * 10 + vz * 5);
+                pos.setXYZ(i, vx * scaleFactor, vy * scaleFactor * 0.9, vz * scaleFactor);
+            }
+            rockGeo.computeVertexNormals();
+            return { geo: rockGeo, params: {} };
+        }
         default:
             return { geo: new THREE.BoxGeometry(s,s,s), params:{ w:s, h:s, d:s } };
     }
 }
 
 function mergeBufferGeometries(geos) {
+    // Convert all to non-indexed to avoid indexing mismatches
+    const nonIndexedGeos = geos.map(g => g.index ? g.toNonIndexed() : g.clone());
+    
     let vc = 0;
-    geos.forEach(g => { vc += g.attributes.position.count; });
+    nonIndexedGeos.forEach(g => { vc += g.attributes.position.count; });
     const pos = new Float32Array(vc*3);
     const nrm = new Float32Array(vc*3);
     let off = 0;
-    geos.forEach(g => {
+    nonIndexedGeos.forEach(g => {
         const pa = g.attributes.position, na = g.attributes.normal;
         for (let i=0; i<pa.count; i++) {
             pos[(off+i)*3]   = pa.getX(i); pos[(off+i)*3+1] = pa.getY(i); pos[(off+i)*3+2] = pa.getZ(i);
@@ -357,6 +405,10 @@ function mergeBufferGeometries(geos) {
         }
         off += pa.count;
     });
+    
+    // Clean up cloned geometries to prevent memory leaks
+    nonIndexedGeos.forEach(g => g.dispose());
+    
     const out = new THREE.BufferGeometry();
     out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     out.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
@@ -408,6 +460,7 @@ function rebuildGeometry(mesh, newParams) {
     const { geo } = buildGeo(mesh.userData.type, newParams);
     mesh.geometry.dispose(); mesh.geometry = geo;
     mesh.userData.params = { ...mesh.userData.params, ...newParams };
+    mesh.userData.origPosition = null; // Reset original positions copy
     rebuildWireEdges(mesh);
     refreshInspector(mesh); updateStats(); saveHist('geo');
 }
@@ -530,6 +583,11 @@ function applySculpt(e) {
     const pos = geo.attributes.position;
     if (!pos) return;
     
+    // Initialize original position array for the revert brush if not exists
+    if (!APP.selected.userData.origPosition) {
+        APP.selected.userData.origPosition = new Float32Array(pos.array);
+    }
+    
     let changed = false;
     let neighborAvg = new THREE.Vector3();
     
@@ -565,6 +623,19 @@ function applySculpt(e) {
             }
             else if (mode === 'smooth') {
                 v.lerp(neighborAvg, delta * falloff * 0.5);
+            }
+            else if (mode === 'flatten') {
+                const dot = v.clone().sub(localHit).dot(faceNormal);
+                const proj = v.clone().sub(faceNormal.clone().multiplyScalar(dot));
+                v.lerp(proj, delta * falloff);
+            }
+            else if (mode === 'revert') {
+                const origV = new THREE.Vector3(
+                    APP.selected.userData.origPosition[i*3],
+                    APP.selected.userData.origPosition[i*3+1],
+                    APP.selected.userData.origPosition[i*3+2]
+                );
+                v.lerp(origV, delta * falloff);
             }
             
             pos.setXYZ(i, v.x, v.y, v.z);
@@ -1583,6 +1654,12 @@ function enterEditMode() {
     buildEditHelpers();
     document.querySelectorAll('.mb-btn.mode-btn').forEach(b=>b.classList.remove('active'));
     el('mbModeEdit').classList.add('active');
+    
+    // Switch right panel inspector to Geometry tab to show sculpt brush parameters
+    document.querySelectorAll('.rp-tab').forEach(t => {
+        if (t.dataset.rpt === 'geometry') t.click();
+    });
+    
     toast('✏ Edit modu — vertex/edge/face seçin','info',2000);
 }
 function exitEditMode() {
@@ -1618,7 +1695,7 @@ function clearEditHelpers() {
 function refreshOutliner() {
     const out=el('outliner');
     if (!APP.objects.length) { out.innerHTML='<div class="out-empty">Sahne boş</div>'; return; }
-    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T'};
+    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨'};
     out.innerHTML=APP.objects.map(obj=>{
         const ic=icons[obj.userData.type]||'○';
         const sel=APP.selected?.userData.id===obj.userData.id;
@@ -1792,9 +1869,48 @@ async function saveProject() {
     try {
         const res=await fetch('save.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',name,data})});
         const r=await res.json();
-        if (r.success){toast(`✓ "${name}" kaydedildi`,'success',2500);el('saveModal').style.display='none';}
+        if (r.success){toast(`✓ "${name}" sunucuya kaydedildi`,'success',2500);el('saveModal').style.display='none';}
         else toast('❌ Kaydetme hatası: '+r.error,'error',4000);
     } catch(e){toast('❌ Sunucu hatası: '+e.message,'error',4000);}
+}
+
+async function saveProjectLocal() {
+    const name = el('mSaveName').value.trim() || 'Tasarim';
+    const data = {
+        version: '3.0',
+        appName: 'TriForge CAD Pro',
+        name,
+        savedAt: new Date().toISOString(),
+        objectCount: APP.objects.length,
+        objects: APP.objects.map(serObj)
+    };
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    
+    if (window.showSaveFilePicker) {
+        try {
+            const handle = await window.showSaveFilePicker({
+                suggestedName: `${name}.json`,
+                types: [{
+                    description: 'TriForge CAD Pro Proje Dosyası',
+                    accept: { 'application/json': ['.json'] }
+                }]
+            });
+            const writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            toast(`✓ "${name}" bilgisayara kaydedildi`, 'success', 2500);
+            el('saveModal').style.display = 'none';
+            return;
+        } catch (err) {
+            if (err.name === 'AbortError') return;
+            console.warn('showSaveFilePicker failed, falling back to download:', err);
+        }
+    }
+    
+    dlBlob(blob, `${name}.json`);
+    toast(`✓ "${name}" indirildi`, 'success', 2500);
+    el('saveModal').style.display = 'none';
 }
 
 /* ════════════════════════════════════════
@@ -1988,7 +2104,28 @@ function bindAll() {
     // Header btns
     el('mbNew').addEventListener('click', () => { if(APP.objects.length>0&&!confirm('Yeni sahne — kaydedilmemiş değişiklikler kaybolur.')) return; clearScene(); saveHist('new'); toast('🆕 Yeni sahne','info',1800); });
     el('mbSave').addEventListener('click', () => { el('saveModal').style.display='flex'; el('mSaveName').focus(); });
-    el('mbLoad').addEventListener('click', () => toast('Proje yükleme yakında...','info',2000));
+    el('mbLoad').addEventListener('click', () => el('localFileInp').click());
+    el('localFileInp').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const data = JSON.parse(evt.target.result);
+                if (!data || !Array.isArray(data.objects)) {
+                    toast('❌ Geçersiz proje dosyası (nesne listesi bulunamadı)', 'error', 3000);
+                    return;
+                }
+                restoreHist(data);
+                saveHist('load');
+                toast(`✓ "${data.projectName || file.name.replace('.json','')}" başarıyla yüklendi`, 'success', 2500);
+            } catch(err) {
+                toast('❌ Dosya okuma hatası: ' + err.message, 'error', 3000);
+            }
+        };
+        reader.readAsText(file);
+        this.value = '';
+    });
     el('mbUndo').addEventListener('click', undo);
     el('mbRedo').addEventListener('click', redo);
     el('mbDup').addEventListener('click', () => duplicateObj(APP.selected));
@@ -1998,6 +2135,7 @@ function bindAll() {
 
     // Save modal
     el('mSaveOk').addEventListener('click', saveProject);
+    el('mSaveLocal').addEventListener('click', saveProjectLocal);
     el('mSaveCancel').addEventListener('click', () => el('saveModal').style.display='none');
     el('mSaveClose').addEventListener('click', () => el('saveModal').style.display='none');
     el('mSaveName').addEventListener('keydown', e => { if(e.key==='Enter') saveProject(); });

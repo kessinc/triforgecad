@@ -295,6 +295,10 @@
                         <button class="shp" data-s="terrain" title="Engebeli Arazi Zemin"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><path d="M4 22 Q12 10 18 18 Q24 26 32 14 L32 30 L4 30 Z"/></svg>Arazi</button>
                         <button class="shp" data-s="stairs" title="Merdiven"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M6 30H10V26H16V20H22V14H28V8H32"/></svg>Merdiven</button>
                         <button class="shp" data-s="wall" title="Kapı Girişli Duvar"><svg viewBox="0 0 36 36" fill="none" stroke="#90a4ae" stroke-width="1.4"><rect x="4" y="6" width="28" height="24" rx="1"/><rect x="14" y="14" width="8" height="16"/></svg>Duvar</button>
+                        <button class="shp" data-s="house" title="Düşük Poligonlu Ev"><svg viewBox="0 0 36 36" fill="none" stroke="#ffb74d" stroke-width="1.4"><path d="M6 16 L18 6 L30 16 V28 H6 Z"/><rect x="14" y="18" width="8" height="10"/></svg>Ev</button>
+                        <button class="shp" data-s="sword" title="Düşük Poligonlu Kılıç"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M18 4 L21 8 V24 L18 26 L15 24 V8 Z"/><line x1="10" y1="26" x2="26" y2="26"/><rect x="17" y="26" width="2" height="6" rx="0.5"/></svg>Kılıç</button>
+                        <button class="shp" data-s="tower" title="Kale Kulesi"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><path d="M8 30 V12 L11 8 H25 L28 12 V30 Z"/><rect x="14" y="18" width="8" height="12"/><line x1="8" y1="12" x2="28" y2="12"/></svg>Kule</button>
+                        <button class="shp" data-s="rock" title="Düşük Poligonlu Kaya"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><polygon points="18,6 28,12 30,24 18,30 8,24 6,12"/></svg>Kaya</button>
                     </div>
                 </div>
             </div>
@@ -793,6 +797,8 @@
                                 <option value="pull" selected>Çek / Şişir (Pull)</option>
                                 <option value="push">İt / Çökert (Push)</option>
                                 <option value="smooth">Düzleştir (Smooth)</option>
+                                <option value="flatten">Kazı / Düzle (Flatten)</option>
+                                <option value="revert">Orjinale Döndür / Sil (Revert)</option>
                             </select>
                         </div>
                         <div class="lp-row">
@@ -947,7 +953,8 @@
         </div>
         <div class="modal-foot">
             <button class="mb2 mb-sec" id="mSaveCancel">İptal</button>
-            <button class="mb2 mb-ok" id="mSaveOk">Kaydet</button>
+            <button class="mb2 mb-local" id="mSaveLocal" style="background:var(--blu2);border-color:var(--blu);color:white">Cihaza Kaydet</button>
+            <button class="mb2 mb-ok" id="mSaveOk">Sunucuya Kaydet</button>
         </div>
     </div>
 </div>
@@ -967,6 +974,7 @@
     </div>
 </div>
 
+<input type="file" id="localFileInp" accept=".json" style="display:none;">
 <div id="toastBox"></div>
 
 <script src="script.js"></script>
