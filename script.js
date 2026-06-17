@@ -223,6 +223,21 @@ const SHAPE_INFO = {
     bridge:   { label:'Köprü',    color:0xa1887f },
     torch:    { label:'Meşale',   color:0xff8a80 },
     lantern:  { label:'Fener',    color:0xffd54f },
+    fence:    { label:'Çit',      color:0xa1887f },
+    well:     { label:'Kuyu',     color:0x80deea },
+    campfire: { label:'Kamp Ateşi',color:0xff8a80 },
+    tent:     { label:'Çadır',    color:0x81c784 },
+    windmill: { label:'Değirmen', color:0xffd54f },
+    boat:     { label:'Tekne',    color:0x64b5f6 },
+    crystal:  { label:'Kristal',  color:0xe040fb },
+    pillar:   { label:'Sütun',    color:0xb0bec5 },
+    flag:     { label:'Bayrak',   color:0xff8a80 },
+    gravestone:{ label:'Mezar',    color:0x90a4ae },
+    castle:    { label:'Şato',     color:0xb0bec5 },
+    lighthouse:{ label:'Deniz Feneri',color:0xffd54f },
+    pine:      { label:'Çam Ağacı', color:0x2e7d32 },
+    mushroom:  { label:'Mantar',   color:0xff8a80 },
+    cannon:    { label:'Top',      color:0x37474f },
     terrain_mount:{ label:'Dağlar', color:0xa1887f },
     terrain_dunes:{ label:'Kumul',  color:0xffe082 },
     terrain_canyon:{ label:'Kanyon',color:0xffab91 },
@@ -230,6 +245,11 @@ const SHAPE_INFO = {
     terrain_lake: { label:'Göl',    color:0x80deea },
     terrain_volcano:{ label:'Volkan',color:0xff8a80 },
     terrain_island:{ label:'Ada',   color:0x80cbc4 },
+    terrain_plain: { label:'Ova',   color:0x4caf50 },
+    terrain_swamp: { label:'Bataklık', color:0x33691e },
+    terrain_oasis: { label:'Vaha',   color:0xffcc80 },
+    terrain_fjord: { label:'Fiyort', color:0x78909c },
+    terrain_river: { label:'Nehir',   color:0x80deea },
 };
 
 function buildGeo(type, p = {}) {
@@ -448,6 +468,128 @@ function buildGeo(type, p = {}) {
             const merged = mergeBufferGeometries([deck, rail1, rail2, ...supports]);
             return { geo: merged || deck, params: {} };
         }
+        case 'fence': {
+            const post1 = new THREE.CylinderGeometry(s/16, s/16, s, 8); post1.translate(-s*0.4, s/2, 0);
+            const post2 = new THREE.CylinderGeometry(s/16, s/16, s, 8); post2.translate(s*0.4, s/2, 0);
+            const rail1 = new THREE.BoxGeometry(s, s/10, s/20); rail1.translate(0, s*0.35, 0);
+            const rail2 = new THREE.BoxGeometry(s, s/10, s/20); rail2.translate(0, s*0.75, 0);
+            const merged = mergeBufferGeometries([post1, post2, rail1, rail2]);
+            return { geo: merged || post1, params: {} };
+        }
+        case 'well': {
+            const base = new THREE.CylinderGeometry(s*0.4, s*0.4, s*0.4, 12); base.translate(0, s*0.2, 0);
+            const pole1 = new THREE.CylinderGeometry(s/24, s/24, s*0.8, 8); pole1.translate(-s*0.35, s*0.6, 0);
+            const pole2 = new THREE.CylinderGeometry(s/24, s/24, s*0.8, 8); pole2.translate(s*0.35, s*0.6, 0);
+            const roof = new THREE.ConeGeometry(s*0.48, s*0.35, 4); roof.rotateY(Math.PI/4); roof.translate(0, s*1.1, 0);
+            const merged = mergeBufferGeometries([base, pole1, pole2, roof]);
+            return { geo: merged || base, params: {} };
+        }
+        case 'campfire': {
+            const log1 = new THREE.BoxGeometry(s*0.6, s/10, s/10); log1.rotateY(0); log1.rotateZ(0.1); log1.translate(0, s/20, 0);
+            const log2 = new THREE.BoxGeometry(s*0.6, s/10, s/10); log2.rotateY(Math.PI*2/3); log2.rotateZ(0.1); log2.translate(0, s/20, 0);
+            const log3 = new THREE.BoxGeometry(s*0.6, s/10, s/10); log3.rotateY(-Math.PI*2/3); log3.rotateZ(0.1); log3.translate(0, s/20, 0);
+            const flame = new THREE.ConeGeometry(s/5, s*0.4, 6); flame.translate(0, s*0.25, 0);
+            const merged = mergeBufferGeometries([log1, log2, log3, flame]);
+            return { geo: merged || flame, params: {} };
+        }
+        case 'tent': {
+            const triangle = new THREE.Shape();
+            triangle.moveTo(0, s*0.8);
+            triangle.lineTo(-s/2, 0);
+            triangle.lineTo(s/2, 0);
+            triangle.closePath();
+            const geo = new THREE.ExtrudeGeometry(triangle, { depth: s, bevelEnabled: false });
+            geo.rotateX(-Math.PI/2);
+            geo.translate(0, 0, -s/2);
+            return { geo, params: {} };
+        }
+        case 'windmill': {
+            const base = new THREE.CylinderGeometry(s*0.16, s*0.3, s, 8); base.translate(0, s/2, 0);
+            const cap = new THREE.SphereGeometry(s*0.14, 8, 8); cap.translate(0, s, 0);
+            const blade1 = new THREE.BoxGeometry(s*0.8, s/12, s/100); blade1.translate(s*0.4, s, s*0.12);
+            const blade2 = blade1.clone().rotateZ(Math.PI/2);
+            const blade3 = blade1.clone().rotateZ(Math.PI);
+            const blade4 = blade1.clone().rotateZ(-Math.PI/2);
+            const merged = mergeBufferGeometries([base, cap, blade1, blade2, blade3, blade4]);
+            return { geo: merged || base, params: {} };
+        }
+        case 'boat': {
+            const bottom = new THREE.BoxGeometry(s*0.8, s/10, s*0.4); bottom.translate(0, s/20, 0);
+            const left = new THREE.BoxGeometry(s*0.8, s/4, s/20); left.rotateX(0.2); left.translate(0, s/8, -s*0.22);
+            const right = new THREE.BoxGeometry(s*0.8, s/4, s/20); right.rotateX(-0.2); right.translate(0, s/8, s*0.22);
+            const back = new THREE.BoxGeometry(s/20, s/4, s*0.4); back.translate(-s*0.4, s/8, 0);
+            const front1 = new THREE.BoxGeometry(s*0.35, s/4, s/20); front1.rotateY(-0.4); front1.translate(s*0.5, s/8, -s*0.1);
+            const front2 = new THREE.BoxGeometry(s*0.35, s/4, s/20); front2.rotateY(0.4); front2.translate(s*0.5, s/8, s*0.1);
+            const merged = mergeBufferGeometries([bottom, left, right, back, front1, front2]);
+            return { geo: merged || bottom, params: {} };
+        }
+        case 'crystal': {
+            const top = new THREE.ConeGeometry(s/4, s*0.5, 6); top.translate(0, s*0.25, 0);
+            const bottom = new THREE.ConeGeometry(s/4, s*0.5, 6); bottom.rotateX(Math.PI); bottom.translate(0, -s*0.25, 0);
+            const merged = mergeBufferGeometries([top, bottom]);
+            merged.translate(0, s*0.5, 0);
+            return { geo: merged || top, params: {} };
+        }
+        case 'pillar': {
+            const base = new THREE.BoxGeometry(s*0.4, s*0.1, s*0.4); base.translate(0, s*0.05, 0);
+            const cap = new THREE.BoxGeometry(s*0.4, s*0.1, s*0.4); cap.translate(0, s*0.95, 0);
+            const shaft = new THREE.CylinderGeometry(s*0.14, s*0.14, s*0.8, 8); shaft.translate(0, s*0.5, 0);
+            const merged = mergeBufferGeometries([base, cap, shaft]);
+            return { geo: merged || shaft, params: {} };
+        }
+        case 'flag': {
+            const pole = new THREE.CylinderGeometry(s/32, s/32, s*1.3, 8); pole.translate(0, s*0.65, 0);
+            const banner = new THREE.BoxGeometry(s*0.4, s*0.3, s/64); banner.translate(s*0.2 + s/32, s*1.05, 0);
+            const merged = mergeBufferGeometries([pole, banner]);
+            return { geo: merged || pole, params: {} };
+        }
+        case 'gravestone': {
+            const base = new THREE.BoxGeometry(s*0.6, s*0.1, s*0.4); base.translate(0, s*0.05, 0);
+            const stone = new THREE.BoxGeometry(s*0.45, s*0.7, s*0.15); stone.translate(0, s*0.45, 0);
+            const topRound = new THREE.CylinderGeometry(s*0.225, s*0.225, s*0.15, 8); topRound.rotateX(Math.PI/2); topRound.translate(0, s*0.8, 0);
+            const merged = mergeBufferGeometries([base, stone, topRound]);
+            return { geo: merged || stone, params: {} };
+        }
+        case 'castle': {
+            const base = new THREE.BoxGeometry(s, s*0.4, s); base.translate(0, s*0.2, 0);
+            const tower1 = new THREE.CylinderGeometry(s*0.15, s*0.15, s*0.7, 8); tower1.translate(-s*0.45, s*0.35, -s*0.45);
+            const tower2 = tower1.clone().translate(s*0.9, 0, 0);
+            const tower3 = tower1.clone().translate(0, 0, s*0.9);
+            const tower4 = tower1.clone().translate(s*0.9, 0, s*0.9);
+            const gate = new THREE.BoxGeometry(s*0.3, s*0.25, s*0.1); gate.translate(0, s*0.125, s*0.48);
+            const merged = mergeBufferGeometries([base, tower1, tower2, tower3, tower4, gate]);
+            return { geo: merged || base, params: {} };
+        }
+        case 'lighthouse': {
+            const base = new THREE.CylinderGeometry(s*0.25, s*0.35, s*0.9, 8); base.translate(0, s*0.45, 0);
+            const balcony = new THREE.CylinderGeometry(s*0.22, s*0.22, s*0.05, 8); balcony.translate(0, s*0.925, 0);
+            const glass = new THREE.CylinderGeometry(s*0.15, s*0.15, s*0.2, 8); glass.translate(0, s*1.05, 0);
+            const cap = new THREE.ConeGeometry(s*0.18, s*0.15, 8); cap.translate(0, s*1.225, 0);
+            const merged = mergeBufferGeometries([base, balcony, glass, cap]);
+            return { geo: merged || base, params: {} };
+        }
+        case 'pine': {
+            const trunk = new THREE.CylinderGeometry(s/12, s/10, s/3, 8); trunk.translate(0, s/6, 0);
+            const leaves1 = new THREE.ConeGeometry(s*0.45, s*0.4, 8); leaves1.translate(0, s*0.45, 0);
+            const leaves2 = new THREE.ConeGeometry(s*0.35, s*0.35, 8); leaves2.translate(0, s*0.75, 0);
+            const leaves3 = new THREE.ConeGeometry(s*0.25, s*0.3, 8); leaves3.translate(0, s*1.0, 0);
+            const merged = mergeBufferGeometries([trunk, leaves1, leaves2, leaves3]);
+            return { geo: merged || trunk, params: {} };
+        }
+        case 'mushroom': {
+            const stalk = new THREE.CylinderGeometry(s*0.08, s*0.12, s*0.4, 8); stalk.translate(0, s*0.2, 0);
+            const cap = new THREE.SphereGeometry(s*0.25, 8, 8, 0, Math.PI*2, 0, Math.PI/2); cap.translate(0, s*0.4, 0);
+            const merged = mergeBufferGeometries([stalk, cap]);
+            return { geo: merged || stalk, params: {} };
+        }
+        case 'cannon': {
+            const barrel = new THREE.CylinderGeometry(s*0.08, s*0.12, s*0.7, 8); barrel.rotateX(Math.PI/2 - 0.2); barrel.translate(0, s*0.3, s*0.1);
+            const wheel1 = new THREE.CylinderGeometry(s*0.18, s*0.18, s*0.05, 8); wheel1.rotateZ(Math.PI/2); wheel1.translate(-s*0.2, s*0.18, 0);
+            const wheel2 = wheel1.clone().translate(s*0.4, 0, 0);
+            const base = new THREE.BoxGeometry(s*0.35, s*0.15, s*0.5); base.translate(0, s*0.15, 0);
+            const merged = mergeBufferGeometries([barrel, wheel1, wheel2, base]);
+            return { geo: merged || barrel, params: {} };
+        }
         case 'torch': {
             const stick = new THREE.CylinderGeometry(s*0.03, s*0.02, s*0.5, 6);
             stick.rotateZ(-Math.PI/12);
@@ -467,121 +609,117 @@ function buildGeo(type, p = {}) {
             const merged = mergeBufferGeometries([pole, arm, bulb]);
             return { geo: merged || pole, params: {} };
         }
-        case 'terrain_mount': {
-            const w = s * 3, d = s * 3, seg = 32;
-            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
+        case 'terrain':
+        case 'terrain_mount':
+        case 'terrain_dunes':
+        case 'terrain_canyon':
+        case 'terrain_hills':
+        case 'terrain_lake':
+        case 'terrain_volcano':
+        case 'terrain_island':
+        case 'terrain_plain':
+        case 'terrain_swamp':
+        case 'terrain_oasis':
+        case 'terrain_fjord':
+        case 'terrain_river': {
+            const tType = p.type || type.replace('terrain_', '') || 'mount';
+            const width = p.w || s * 3;
+            const depth = p.d || s * 3;
+            const segs = p.seg || 32;
+            const hScale = p.height !== undefined ? p.height : 1.0;
+            const rScale = p.roughness !== undefined ? p.roughness : 1.0;
+            const theme = p.theme || 'grass';
+            
+            const geo = new THREE.PlaneGeometry(width, depth, segs, segs);
             geo.rotateX(-Math.PI/2);
+            
             const pos = geo.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                const vx = pos.getX(i);
-                const vz = pos.getZ(i);
-                const y = Math.sin(vx * 0.08) * Math.cos(vz * 0.08) * 12 + 
-                          Math.sin(vx * 0.2) * Math.cos(vz * 0.2) * 3 + 
-                          Math.abs(Math.sin(vx * 0.02)) * 8;
-                pos.setY(i, y);
-            }
+            generateTerrainHeights(pos, tType, s, width, depth, hScale, rScale);
+            
             geo.computeVertexNormals();
-            return { geo, params: {} };
-        }
-        case 'terrain_dunes': {
-            const w = s * 3, d = s * 3, seg = 32;
-            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
-            geo.rotateX(-Math.PI/2);
-            const pos = geo.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                const vx = pos.getX(i);
-                const vz = pos.getZ(i);
-                const y = Math.sin(vx * 0.04 + vz * 0.02) * 4.5 + Math.sin(vx * 0.08) * 1.2;
-                pos.setY(i, y);
-            }
-            geo.computeVertexNormals();
-            return { geo, params: {} };
-        }
-        case 'terrain_canyon': {
-            const w = s * 3, d = s * 3, seg = 32;
-            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
-            geo.rotateX(-Math.PI/2);
-            const pos = geo.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                const vx = pos.getX(i);
-                const vz = pos.getZ(i);
-                const dist = Math.abs(vz);
-                const canyonBase = dist < s * 0.35 ? -6 : (dist - s * 0.35) * 1.6;
-                const noise = Math.sin(vx * 0.12) * Math.cos(vz * 0.12) * 2;
-                pos.setY(i, Math.min(14, canyonBase + noise));
-            }
-            geo.computeVertexNormals();
-            return { geo, params: {} };
-        }
-        case 'terrain_hills': {
-            const w = s * 3, d = s * 3, seg = 32;
-            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
-            geo.rotateX(-Math.PI/2);
-            const pos = geo.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                const vx = pos.getX(i);
-                const vz = pos.getZ(i);
-                const y = Math.sin(vx * 0.035) * 5 + Math.cos(vz * 0.035) * 5;
-                pos.setY(i, y);
-            }
-            geo.computeVertexNormals();
-            return { geo, params: {} };
-        }
-        case 'terrain_lake': {
-            const w = s * 3, d = s * 3, seg = 32;
-            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
-            geo.rotateX(-Math.PI/2);
-            const pos = geo.attributes.position;
-            const maxDist = w / 2;
-            for (let i = 0; i < pos.count; i++) {
-                const vx = pos.getX(i);
-                const vz = pos.getZ(i);
-                const dist = Math.sqrt(vx*vx + vz*vz);
-                const y = dist < maxDist * 0.5 ? -8 + (dist / (maxDist * 0.5)) * 4 : -4 + (dist - maxDist * 0.5) * 0.3;
-                pos.setY(i, y);
-            }
-            geo.computeVertexNormals();
-            return { geo, params: {} };
-        }
-        case 'terrain_volcano': {
-            const w = s * 3, d = s * 3, seg = 32;
-            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
-            geo.rotateX(-Math.PI/2);
-            const pos = geo.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                const vx = pos.getX(i);
-                const vz = pos.getZ(i);
-                const dist = Math.sqrt(vx*vx + vz*vz);
-                let y = 0;
-                if (dist < s * 0.2) {
-                    y = s * 0.7 - (s * 0.2 - dist) * 2.2;
-                } else {
-                    y = Math.max(-1, s * 0.7 - (dist - s * 0.2) * 1.1);
+            return {
+                geo,
+                params: {
+                    type: tType,
+                    w: width,
+                    d: depth,
+                    seg: segs,
+                    height: hScale,
+                    roughness: rScale,
+                    theme: theme
                 }
-                const noise = Math.sin(vx * 0.1) * 1.5;
-                pos.setY(i, y + noise);
-            }
-            geo.computeVertexNormals();
-            return { geo, params: {} };
-        }
-        case 'terrain_island': {
-            const w = s * 3, d = s * 3, seg = 32;
-            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
-            geo.rotateX(-Math.PI/2);
-            const pos = geo.attributes.position;
-            const maxDist = w / 2;
-            for (let i = 0; i < pos.count; i++) {
-                const vx = pos.getX(i);
-                const vz = pos.getZ(i);
-                const dist = Math.sqrt(vx*vx + vz*vz);
-                const y = Math.max(-2, (1 - dist / maxDist) * 13 + Math.sin(vx * 0.08) * 1.5);
-                pos.setY(i, y);
-            }
-            geo.computeVertexNormals();
-            return { geo, params: {} };
+            };
         }
         default:
             return { geo: new THREE.BoxGeometry(s,s,s), params:{ w:s, h:s, d:s } };
+    }
+}
+
+function generateTerrainHeights(pos, type, s, w, d, heightScale, roughnessScale) {
+    for (let i = 0; i < pos.count; i++) {
+        const vx = pos.getX(i);
+        const vz = pos.getZ(i);
+        let y = 0;
+        
+        if (type === 'mount') {
+            y = Math.sin(vx * 0.08) * Math.cos(vz * 0.08) * 12 + 
+                Math.sin(vx * 0.2) * Math.cos(vz * 0.2) * 3 * roughnessScale + 
+                Math.abs(Math.sin(vx * 0.02)) * 8;
+            y *= heightScale;
+        } else if (type === 'dunes') {
+            y = (Math.sin(vx * 0.04 + vz * 0.02) * 4.5 + Math.sin(vx * 0.08) * 1.2 * roughnessScale) * heightScale;
+        } else if (type === 'canyon') {
+            const dist = Math.abs(vz);
+            const canyonBase = dist < s * 0.35 ? -6 : (dist - s * 0.35) * 1.6;
+            const noise = Math.sin(vx * 0.12) * Math.cos(vz * 0.12) * 2 * roughnessScale;
+            y = Math.min(14, canyonBase + noise) * heightScale;
+        } else if (type === 'hills') {
+            y = (Math.sin(vx * 0.035) * 5 + Math.cos(vz * 0.035) * 5 + Math.sin(vx * 0.1) * roughnessScale) * heightScale;
+        } else if (type === 'lake') {
+            const maxDist = w / 2;
+            const dist = Math.sqrt(vx*vx + vz*vz);
+            const base = dist < maxDist * 0.5 ? -8 + (dist / (maxDist * 0.5)) * 4 : -4 + (dist - maxDist * 0.5) * 0.3;
+            y = (base + Math.sin(vx * 0.1) * 0.5 * roughnessScale) * heightScale;
+        } else if (type === 'volcano') {
+            const dist = Math.sqrt(vx*vx + vz*vz);
+            if (dist < s * 0.2) {
+                y = s * 0.7 - (s * 0.2 - dist) * 2.2;
+            } else {
+                y = Math.max(-1, s * 0.7 - (dist - s * 0.2) * 1.1);
+            }
+            const noise = Math.sin(vx * 0.1) * 1.5 * roughnessScale;
+            y = (y + noise) * heightScale;
+        } else if (type === 'island') {
+            const maxDist = w / 2;
+            const dist = Math.sqrt(vx*vx + vz*vz);
+            y = Math.max(-2, (1 - dist / maxDist) * 13 + Math.sin(vx * 0.08) * 1.5 * roughnessScale) * heightScale;
+        } else if (type === 'plain') {
+            y = (Math.sin(vx * 0.02) * Math.cos(vz * 0.02) * 1.5 + Math.sin(vx * 0.08) * 0.5 * roughnessScale) * heightScale;
+        } else if (type === 'swamp') {
+            const base = Math.sin(vx * 0.02) * Math.cos(vz * 0.02) * 1.0;
+            const dip = Math.sin(vx * 0.04) * Math.cos(vz * 0.04) < -0.1 ? -2 : 0;
+            y = (base + dip + Math.sin(vx * 0.1) * 0.3 * roughnessScale) * heightScale;
+        } else if (type === 'oasis') {
+            const dist = Math.sqrt(vx*vx + vz*vz);
+            const maxDist = w / 2;
+            const dunes = Math.sin(vx * 0.04 + vz * 0.02) * 3.5;
+            const base = dist < maxDist * 0.3 ? -5 + (dist / (maxDist * 0.3)) * 4 : dunes;
+            y = (base + Math.sin(vx * 0.1) * 0.5 * roughnessScale) * heightScale;
+        } else if (type === 'fjord') {
+            const dist = Math.abs(vz);
+            const base = dist < s * 0.25 ? -10 : (dist - s * 0.25) * 2.5;
+            const noise = Math.sin(vx * 0.1) * Math.cos(vz * 0.1) * 2 * roughnessScale;
+            y = (base + noise) * heightScale;
+        } else if (type === 'river') {
+            const wPath = vz - Math.sin(vx * 0.04) * (s * 0.4);
+            const dist = Math.abs(wPath);
+            const base = dist < s * 0.2 ? -5 : (dist - s * 0.2) * 1.5;
+            const noise = Math.cos(vx * 0.05) * 3 + Math.sin(vx * 0.1) * roughnessScale;
+            y = (base + noise) * heightScale;
+        } else {
+            y = Math.sin(vx * 0.05) * Math.cos(vz * 0.05) * 2 * roughnessScale * heightScale;
+        }
+        pos.setY(i, y);
     }
 }
 
@@ -641,7 +779,15 @@ function addObject(type, extraParams = {}) {
     if (APP.objects.length >= 500) { toast('⚠ Maksimum 500 obje', 'warning', 2000); return null; }
     const info = SHAPE_INFO[type] || { label:'Obje', color:0x4fc3f7 };
     const { geo, params } = buildGeo(type, extraParams);
-    const mat = new THREE.MeshStandardMaterial({ color: info.color, metalness: 0.2, roughness: 0.6 });
+    
+    let defaultColor = info.color;
+    if (type.startsWith('terrain')) {
+        const theme = extraParams.theme || 'grass';
+        const colors = { grass: 0x4caf50, sand: 0xffcc80, snow: 0xf5f5f5, lava: 0x263238, clay: 0xd84315, swamp: 0x33691e, stone: 0x78909c };
+        defaultColor = colors[theme] || defaultColor;
+    }
+    
+    const mat = new THREE.MeshStandardMaterial({ color: defaultColor, metalness: 0.2, roughness: 0.8 });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.castShadow = true; mesh.receiveShadow = true;
     // Seat on grid
@@ -679,6 +825,16 @@ function rebuildGeometry(mesh, newParams) {
     mesh.geometry.dispose(); mesh.geometry = geo;
     mesh.userData.params = { ...mesh.userData.params, ...newParams };
     mesh.userData.origPosition = null; // Reset original positions copy
+    
+    if (mesh.userData.type.startsWith('terrain') && newParams.theme) {
+        const colors = { grass: '#4caf50', sand: '#ffcc80', snow: '#f5f5f5', lava: '#263238', clay: '#d84315', swamp: '#33691e', stone: '#78909c' };
+        const hex = colors[newParams.theme];
+        if (hex) {
+            mesh.material.color.set(hex);
+            if (el('matCol')) el('matCol').value = hex;
+        }
+    }
+    
     rebuildWireEdges(mesh);
     refreshInspector(mesh); updateStats(); saveHist('geo');
 }
@@ -806,6 +962,23 @@ function applySculpt(e) {
         APP.selected.userData.origPosition = new Float32Array(pos.array);
     }
     
+    if (mode === 'paint') {
+        let colors = geo.attributes.color;
+        if (!colors) {
+            const count = pos.count;
+            const array = new Float32Array(count * 3);
+            const baseColor = new THREE.Color(APP.selected.material.color);
+            for (let i = 0; i < count; i++) {
+                array[i * 3] = baseColor.r;
+                array[i * 3 + 1] = baseColor.g;
+                array[i * 3 + 2] = baseColor.b;
+            }
+            geo.setAttribute('color', new THREE.BufferAttribute(array, 3));
+            APP.selected.material.vertexColors = true;
+            APP.selected.material.needsUpdate = true;
+        }
+    }
+    
     let changed = false;
     let neighborAvg = new THREE.Vector3();
     
@@ -855,18 +1028,36 @@ function applySculpt(e) {
                 );
                 v.lerp(origV, delta * falloff);
             }
+            else if (mode === 'paint') {
+                const colors = geo.attributes.color;
+                if (colors) {
+                    const paintColor = new THREE.Color(el('sculptPaintColor')?.value || '#ffc107');
+                    const r = colors.getX(i);
+                    const g = colors.getY(i);
+                    const b = colors.getZ(i);
+                    const vColor = new THREE.Color(r, g, b);
+                    vColor.lerp(paintColor, delta * falloff * 2.0);
+                    colors.setXYZ(i, vColor.r, vColor.g, vColor.b);
+                }
+            }
             
-            pos.setXYZ(i, v.x, v.y, v.z);
+            if (mode !== 'paint') {
+                pos.setXYZ(i, v.x, v.y, v.z);
+            }
             changed = true;
         }
     }
     
     if (changed) {
-        pos.needsUpdate = true;
-        geo.computeVertexNormals();
-        geo.computeBoundingBox();
-        geo.computeBoundingSphere();
-        rebuildWireEdges(APP.selected);
+        if (mode === 'paint' && geo.attributes.color) {
+            geo.attributes.color.needsUpdate = true;
+        } else {
+            pos.needsUpdate = true;
+            geo.computeVertexNormals();
+            geo.computeBoundingBox();
+            geo.computeBoundingSphere();
+            rebuildWireEdges(APP.selected);
+        }
         buildEditHelpers();
         APP.sculptChanged = true;
     }
@@ -914,6 +1105,11 @@ function refreshInspector(obj) {
     el('objLock').checked = obj.userData.locked || false;
     el('objCastShadow').checked = obj.castShadow;
     el('objRecvShadow').checked = obj.receiveShadow;
+    
+    const clearBtn = el('clearPaintBtn');
+    if (clearBtn) {
+        clearBtn.style.display = obj.material.vertexColors === true ? 'block' : 'none';
+    }
 }
 
 function refreshInspectorLive(obj) { syncXYZ(obj); }
@@ -928,6 +1124,83 @@ function syncXYZ(obj) {
 
 function buildGeoParamsList(obj) {
     const list = el('geoParamsList'); list.innerHTML = '';
+    
+    if (obj.userData.type.startsWith('terrain')) {
+        const type = obj.userData.type;
+        const p = obj.userData.params || {};
+        const tVal = p.type || type.replace('terrain_', '') || 'mount';
+        const wVal = p.w !== undefined ? p.w : 60;
+        const dVal = p.d !== undefined ? p.d : 60;
+        const segVal = p.seg !== undefined ? p.seg : 32;
+        const hVal = p.height !== undefined ? p.height : 1.0;
+        const rVal = p.roughness !== undefined ? p.roughness : 1.0;
+        const themeVal = p.theme || 'grass';
+        
+        list.innerHTML = `
+            <div class="gp-r" style="margin-bottom:4px;">
+                <label>Arazi Tipi</label>
+                <select class="lp-sel gp-terrain-inp" data-param="type" style="width:100px;">
+                    <option value="mount" ${tVal==='mount'?'selected':''}>Dağlar</option>
+                    <option value="dunes" ${tVal==='dunes'?'selected':''}>Kumul</option>
+                    <option value="canyon" ${tVal==='canyon'?'selected':''}>Kanyon</option>
+                    <option value="hills" ${tVal==='hills'?'selected':''}>Tepelik</option>
+                    <option value="lake" ${tVal==='lake'?'selected':''}>Göl</option>
+                    <option value="volcano" ${tVal==='volcano'?'selected':''}>Volkan</option>
+                    <option value="island" ${tVal==='island'?'selected':''}>Ada</option>
+                    <option value="plain" ${tVal==='plain'?'selected':''}>Ova</option>
+                    <option value="swamp" ${tVal==='swamp'?'selected':''}>Bataklık</option>
+                    <option value="oasis" ${tVal==='oasis'?'selected':''}>Vaha</option>
+                    <option value="fjord" ${tVal==='fjord'?'selected':''}>Fiyort</option>
+                    <option value="river" ${tVal==='river'?'selected':''}>Nehir Vadisi</option>
+                </select>
+            </div>
+            <div class="gp-r" style="margin-bottom:4px;">
+                <label>Renk Teması</label>
+                <select class="lp-sel gp-terrain-inp" data-param="theme" style="width:100px;">
+                    <option value="grass" ${themeVal==='grass'?'selected':''}>Çimenli</option>
+                    <option value="sand" ${themeVal==='sand'?'selected':''}>Kumlu</option>
+                    <option value="snow" ${themeVal==='snow'?'selected':''}>Karlı</option>
+                    <option value="lava" ${themeVal==='lava'?'selected':''}>Volkanik</option>
+                    <option value="clay" ${themeVal==='clay'?'selected':''}>Kanyon</option>
+                    <option value="swamp" ${themeVal==='swamp'?'selected':''}>Bataklık</option>
+                    <option value="stone" ${themeVal==='stone'?'selected':''}>Kayalık</option>
+                </select>
+            </div>
+            <div class="gp-r" style="margin-bottom:4px;">
+                <label>Genişlik</label>
+                <input type="number" class="lp-inp gp-terrain-inp" data-param="w" value="${wVal}" step="5" min="10" max="1000" style="width:100px;">
+            </div>
+            <div class="gp-r" style="margin-bottom:4px;">
+                <label>Derinlik</label>
+                <input type="number" class="lp-inp gp-terrain-inp" data-param="d" value="${dVal}" step="5" min="10" max="1000" style="width:100px;">
+            </div>
+            <div class="gp-r" style="margin-bottom:4px;">
+                <label>Yükseklik</label>
+                <input type="number" class="lp-inp gp-terrain-inp" data-param="height" value="${hVal}" step="0.1" min="0.1" max="10" style="width:100px;">
+            </div>
+            <div class="gp-r" style="margin-bottom:4px;">
+                <label>Pürüzlülük</label>
+                <input type="number" class="lp-inp gp-terrain-inp" data-param="roughness" value="${rVal}" step="0.1" min="0.0" max="10" style="width:100px;">
+            </div>
+            <div class="gp-r" style="margin-bottom:4px;">
+                <label>Detay (Seg)</label>
+                <input type="number" class="lp-inp gp-terrain-inp" data-param="seg" value="${segVal}" step="4" min="4" max="256" style="width:100px;">
+            </div>
+        `;
+        
+        list.querySelectorAll('.gp-terrain-inp').forEach(inp => {
+            inp.addEventListener('change', () => {
+                const newParams = {};
+                list.querySelectorAll('.gp-terrain-inp').forEach(i => {
+                    const pName = i.dataset.param;
+                    newParams[pName] = pName === 'type' || pName === 'theme' ? i.value : parseFloat(i.value) || 0;
+                });
+                rebuildGeometry(obj, newParams);
+            });
+        });
+        return;
+    }
+    
     const params = obj.userData.params || {};
     const labels = { w:'Genişlik', h:'Yükseklik', d:'Derinlik', r:'Yarıçap', rb:'Alt R', seg:'Dilimler', tube:'Boru R', len:'Uzunluk', ws:'W Seg', hs:'H Seg', rs:'R Seg', ts:'T Seg', ro:'Dış R', detail:'Detay', turns:'Sarım', sw:'Mil R', hw:'Kafa R', hh:'Kafa H', sides:'Kenar', segW:'Seg W', segH:'Seg H', segD:'Seg D' };
     Object.entries(params).forEach(([k,v]) => {
@@ -1913,7 +2186,7 @@ function clearEditHelpers() {
 function refreshOutliner() {
     const out=el('outliner');
     if (!APP.objects.length) { out.innerHTML='<div class="out-empty">Sahne boş</div>'; return; }
-    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️'};
+    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️',bridge:'🌉',torch:'🕯️',lantern:'🏮',fence:'🚧',well:'⛲',campfire:'🔥',tent:'⛺',windmill:'⚙️',boat:'⛵',crystal:'💎',pillar:'🏛️',flag:'🚩',gravestone:'🪦',castle:'🏰',lighthouse:'🚨',pine:'🌲',mushroom:'🍄',cannon:'💥',terrain:'⛳',terrain_mount:'🏔️',terrain_dunes:'⏳',terrain_canyon:'🧱',terrain_hills:'🍀',terrain_lake:'💧',terrain_volcano:'🌋',terrain_island:'🏝️',terrain_plain:'🌾',terrain_swamp:'🐊',terrain_oasis:'🌴',terrain_fjord:'🗻',terrain_river:'🌊'};
     out.innerHTML=APP.objects.map(obj=>{
         const ic=icons[obj.userData.type]||'○';
         const sel=APP.selected?.userData.id===obj.userData.id;
@@ -2036,18 +2309,78 @@ function updateUndoRedo() {
     el('mbUndo').disabled=APP.histIdx<=0; el('mbRedo').disabled=APP.histIdx>=APP.history.length-1;
 }
 function serObj(obj) {
-    return { id:obj.userData.id, name:obj.userData.name, type:obj.userData.type, params:obj.userData.params, pos:obj.position.toArray(), rot:[obj.rotation.x,obj.rotation.y,obj.rotation.z], scl:obj.scale.toArray(), mat:{c:'#'+obj.material.color.getHexString(),m:obj.material.metalness,r:obj.material.roughness,o:obj.material.opacity||1}, vis:obj.visible, locked:obj.userData.locked||false };
+    const data = { 
+        id: obj.userData.id, 
+        name: obj.userData.name, 
+        type: obj.userData.type, 
+        params: obj.userData.params, 
+        pos: obj.position.toArray(), 
+        rot: [obj.rotation.x, obj.rotation.y, obj.rotation.z], 
+        scl: obj.scale.toArray(), 
+        mat: { 
+            c: '#' + obj.material.color.getHexString(), 
+            m: obj.material.metalness, 
+            r: obj.material.roughness, 
+            o: obj.material.opacity || 1 
+        }, 
+        vis: obj.visible, 
+        locked: obj.userData.locked || false 
+    };
+    
+    if (obj.geometry.attributes.position && obj.userData.origPosition) {
+        data.customPositions = Array.from(obj.geometry.attributes.position.array);
+        data.origPositions = Array.from(obj.userData.origPosition);
+    }
+    if (obj.geometry.attributes.color) {
+        data.customColors = Array.from(obj.geometry.attributes.color.array);
+        data.vertexColorsEnabled = obj.material.vertexColors === true;
+    }
+    return data;
 }
 function desObj(d) {
     try {
-        const {geo}=buildGeo(d.type,d.params||{});
-        const mat=new THREE.MeshStandardMaterial({color:d.mat.c||'#4fc3f7',metalness:d.mat.m||0.2,roughness:d.mat.r||0.6,opacity:d.mat.o||1,transparent:(d.mat.o||1)<1});
-        const m=new THREE.Mesh(geo,mat);
-        m.position.fromArray(d.pos||[0,0,0]); m.rotation.set(...(d.rot||[0,0,0])); m.scale.fromArray(d.scl||[1,1,1]);
-        m.castShadow=m.receiveShadow=true; m.visible=d.vis!==false;
-        m.userData={id:d.id,name:d.name,type:d.type,params:d.params,locked:d.locked||false};
-        addWireEdges(m); return m;
-    } catch(e){console.error('desObj:',e);return null;}
+        const {geo} = buildGeo(d.type, d.params||{});
+        if (d.customPositions && geo.attributes.position) {
+            const posAttr = geo.attributes.position;
+            if (posAttr.array.length === d.customPositions.length) {
+                posAttr.array.set(d.customPositions);
+                posAttr.needsUpdate = true;
+            }
+        }
+        if (d.customColors) {
+            const colorArr = new Float32Array(d.customColors);
+            geo.setAttribute('color', new THREE.BufferAttribute(colorArr, 3));
+        }
+        const mat = new THREE.MeshStandardMaterial({
+            color: d.mat.c || '#4fc3f7',
+            metalness: d.mat.m || 0.2,
+            roughness: d.mat.r || 0.6,
+            opacity: d.mat.o || 1,
+            transparent: (d.mat.o || 1) < 1,
+            vertexColors: d.vertexColorsEnabled || false
+        });
+        const m = new THREE.Mesh(geo, mat);
+        m.position.fromArray(d.pos || [0,0,0]);
+        m.rotation.set(...(d.rot || [0,0,0]));
+        m.scale.fromArray(d.scl || [1,1,1]);
+        m.castShadow = m.receiveShadow = true;
+        m.visible = d.vis !== false;
+        m.userData = {
+            id: d.id,
+            name: d.name,
+            type: d.type,
+            params: d.params,
+            locked: d.locked || false
+        };
+        if (d.origPositions) {
+            m.userData.origPosition = new Float32Array(d.origPositions);
+        }
+        addWireEdges(m);
+        return m;
+    } catch(e) {
+        console.error('desObj:', e);
+        return null;
+    }
 }
 
 /* ════════════════════════════════════════
@@ -2391,6 +2724,45 @@ function bindAll() {
     el('ctx-rp').addEventListener('click', () => { if(APP.selected){APP.selected.position.set(0,0,0);syncXYZ(APP.selected);saveHist('pos');} el('ctxMenu').style.display='none'; });
     el('ctx-rr').addEventListener('click', () => { if(APP.selected){APP.selected.rotation.set(0,0,0);syncXYZ(APP.selected);saveHist('rot');} el('ctxMenu').style.display='none'; });
     el('ctx-rs').addEventListener('click', () => { if(APP.selected){APP.selected.scale.set(1,1,1);syncXYZ(APP.selected);saveHist('scl');} el('ctxMenu').style.display='none'; });
+
+    // Terrain Tab Bindings
+    let selectedTerrainType = 'mount';
+    document.querySelectorAll('.shp-terr').forEach(btn => btn.addEventListener('click', function() {
+        document.querySelectorAll('.shp-terr').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedTerrainType = this.dataset.t;
+        toast(`Şablon seçildi: ${this.textContent.trim()}`, 'info', 1000);
+    }));
+
+    el('addTerrainBtn')?.addEventListener('click', () => {
+        const w = parseFloat(el('terrW').value) || 60;
+        const d = parseFloat(el('terrD').value) || 60;
+        const seg = parseInt(el('terrSeg').value) || 32;
+        const height = parseFloat(el('terrHeight').value) || 1.0;
+        const roughness = parseFloat(el('terrRoughness').value) || 1.0;
+        const theme = el('terrTheme').value || 'grass';
+        addObject('terrain', { type: selectedTerrainType, w, d, seg, height, roughness, theme });
+    });
+
+    // Sculpt Paint Color Toggle
+    el('sculptMode')?.addEventListener('change', function() {
+        const isPaint = this.value === 'paint';
+        const row = el('paintColorRow');
+        if (row) row.style.display = isPaint ? 'flex' : 'none';
+    });
+
+    // Clear Paint Action
+    el('clearPaintBtn')?.addEventListener('click', () => {
+        if (!APP.selected) return;
+        if (APP.selected.geometry.attributes.color) {
+            APP.selected.geometry.deleteAttribute('color');
+        }
+        APP.selected.material.vertexColors = false;
+        APP.selected.material.needsUpdate = true;
+        saveHist('clear-paint');
+        refreshInspector(APP.selected);
+        toast('🎨 Boyama temizlendi', 'info', 1500);
+    });
 
     // Inspector inputs
     bindInspectorInputs();

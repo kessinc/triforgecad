@@ -216,6 +216,7 @@
         <!-- Panel tabs -->
         <div class="lp-tabs">
             <button class="lp-tab active" data-lpt="shapes">Şekiller</button>
+            <button class="lp-tab" data-lpt="terrain">Arazi</button>
             <button class="lp-tab" data-lpt="ops">İşlem</button>
             <button class="lp-tab" data-lpt="scene">Sahne</button>
             <button class="lp-tab" data-lpt="draw">Çizim</button>
@@ -290,43 +291,52 @@
                     <span class="sec-arrow">▸</span>
                 </button>
                 <div class="lp-sec-body collapsed" id="secGame">
+                    <!-- Sub-category: Karakter & Yapılar -->
+                    <div class="game-subcat-title">🏠 Yapılar & Karakter</div>
                     <div class="shp-grid">
                         <button class="shp" data-s="mannequin" title="Karakter Şablonu"><svg viewBox="0 0 36 36" fill="none" stroke="#f48fb1" stroke-width="1.4"><circle cx="18" cy="8" r="4"/><rect x="12" y="13" width="12" height="12" rx="1"/><line x1="14" y1="25" x2="14" y2="33"/><line x1="22" y1="25" x2="22" y2="33"/></svg>Karakter</button>
-                        <button class="shp" data-s="tree" title="Düşük Poligonlu Ağaç"><svg viewBox="0 0 36 36" fill="none" stroke="#81c784" stroke-width="1.4"><path d="M18 4L28 20H8Z"/><path d="M18 10L26 24H10Z"/><rect x="16" y="24" width="4" height="8" rx="1"/></svg>Ağaç</button>
-                        <button class="shp" data-s="bridge" title="Ahşap Köprü"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><path d="M4 22 H32 M4 26 H32"/><line x1="8" y1="22" x2="8" y2="30"/><line x1="18" y1="22" x2="18" y2="30"/><line x1="28" y1="22" x2="28" y2="30"/></svg>Köprü</button>
-                        <button class="shp" data-s="stairs" title="Merdiven"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M6 30H10V26H16V20H22V14H28V8H32"/></svg>Merdiven</button>
-                        <button class="shp" data-s="wall" title="Kapı Girişli Duvar"><svg viewBox="0 0 36 36" fill="none" stroke="#90a4ae" stroke-width="1.4"><rect x="4" y="6" width="28" height="24" rx="1"/><rect x="14" y="14" width="8" height="16"/></svg>Duvar</button>
                         <button class="shp" data-s="house" title="Düşük Poligonlu Ev"><svg viewBox="0 0 36 36" fill="none" stroke="#ffb74d" stroke-width="1.4"><path d="M6 16 L18 6 L30 16 V28 H6 Z"/><rect x="14" y="18" width="8" height="10"/></svg>Ev</button>
-                        <button class="shp" data-s="sword" title="Düşük Poligonlu Kılıç"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M18 4 L21 8 V24 L18 26 L15 24 V8 Z"/><line x1="10" y1="26" x2="26" y2="26"/><rect x="17" y="26" width="2" height="6" rx="0.5"/></svg>Kılıç</button>
                         <button class="shp" data-s="tower" title="Kale Kulesi"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><path d="M8 30 V12 L11 8 H25 L28 12 V30 Z"/><rect x="14" y="18" width="8" height="12"/><line x1="8" y1="12" x2="28" y2="12"/></svg>Kule</button>
+                        <button class="shp" data-s="wall" title="Kapı Girişli Duvar"><svg viewBox="0 0 36 36" fill="none" stroke="#90a4ae" stroke-width="1.4"><rect x="4" y="6" width="28" height="24" rx="1"/><rect x="14" y="14" width="8" height="16"/></svg>Duvar</button>
+                        <button class="shp" data-s="stairs" title="Merdiven"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M6 30H10V26H16V20H22V14H28V8H32"/></svg>Merdiven</button>
+                        <button class="shp" data-s="bridge" title="Ahşap Köprü"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><path d="M4 22 H32 M4 26 H32"/><line x1="8" y1="22" x2="8" y2="30"/><line x1="18" y1="22" x2="18" y2="30"/><line x1="28" y1="22" x2="28" y2="30"/></svg>Köprü</button>
+                        <button class="shp" data-s="windmill" title="Yel Değirmeni"><svg viewBox="0 0 36 36" fill="none" stroke="#ffd54f" stroke-width="1.4"><polygon points="12,30 15,12 21,12 24,30"/><circle cx="18" cy="12" r="2"/><line x1="18" y1="12" x2="10" y2="4"/><line x1="18" y1="12" x2="26" y2="4"/><line x1="18" y1="12" x2="26" y2="20"/><line x1="18" y1="12" x2="10" y2="20"/></svg>Değirmen</button>
+                        <button class="shp" data-s="well" title="Su Kuyusu"><svg viewBox="0 0 36 36" fill="none" stroke="#80deea" stroke-width="1.4"><rect x="6" y="22" width="24" height="8" rx="1"/><path d="M10 22 V8 H26 V22 M6 8 H30"/></svg>Kuyu</button>
+                        <button class="shp" data-s="tent" title="Kamp Çadırı"><svg viewBox="0 0 36 36" fill="none" stroke="#81c784" stroke-width="1.4"><polygon points="18,6 30,28 6,28"/><line x1="18" y1="14" x2="18" y2="28"/></svg>Çadır</button>
+                        <button class="shp" data-s="castle" title="Mini Kale"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><rect x="6" y="14" width="24" height="14" rx="1"/><rect x="15" y="20" width="6" height="8"/><path d="M4 10 H32 M10 10 V14 M26 10 V14"/></svg>Şato</button>
+                        <button class="shp" data-s="lighthouse" title="Deniz Feneri"><svg viewBox="0 0 36 36" fill="none" stroke="#ffd54f" stroke-width="1.4"><path d="M14 30 L16 10 H20 L22 30 Z"/><circle cx="18" cy="7" r="3"/></svg>Deniz Feneri</button>
+                    </div>
+
+                    <!-- Sub-category: Doğa & Çevre -->
+                    <div class="game-subcat-title">🌲 Doğa & Çevre</div>
+                    <div class="shp-grid">
+                        <button class="shp" data-s="tree" title="Yapraklı Ağaç"><svg viewBox="0 0 36 36" fill="none" stroke="#81c784" stroke-width="1.4"><path d="M18 4L28 20H8Z"/><path d="M18 10L26 24H10Z"/><rect x="16" y="24" width="4" height="8" rx="1"/></svg>Meşe Ağacı</button>
+                        <button class="shp" data-s="pine" title="Çam Ağacı"><svg viewBox="0 0 36 36" fill="none" stroke="#2e7d32" stroke-width="1.4"><polygon points="18,4 28,14 8,14"/><polygon points="18,10 26,20 10,20"/><polygon points="18,16 24,26 12,26"/><rect x="16" y="26" width="4" height="6"/></svg>Çam Ağacı</button>
                         <button class="shp" data-s="rock" title="Düşük Poligonlu Kaya"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><polygon points="18,6 28,12 30,24 18,30 8,24 6,12"/></svg>Kaya</button>
+                        <button class="shp" data-s="campfire" title="Kamp Ateşi"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><path d="M8 28 L28 22 M28 28 L8 22"/><path d="M14 22 Q18 8 22 22 Z"/></svg>Kamp Ateşi</button>
+                        <button class="shp" data-s="crystal" title="Enerji Kristali"><svg viewBox="0 0 36 36" fill="none" stroke="#e040fb" stroke-width="1.4"><polygon points="18,4 26,18 18,32 10,18"/></svg>Kristal</button>
+                        <button class="shp" data-s="mushroom" title="Mantar"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><path d="M14 20 A6 6 0 0 1 22 20 Z"/><rect x="16" y="20" width="4" height="8" rx="1"/></svg>Mantar</button>
+                    </div>
+
+                    <!-- Sub-category: Eşyalar & Savaş -->
+                    <div class="game-subcat-title">🛡️ Eşyalar & Savaş</div>
+                    <div class="shp-grid">
+                        <button class="shp" data-s="sword" title="Düşük Poligonlu Kılıç"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M18 4 L21 8 V24 L18 26 L15 24 V8 Z"/><line x1="10" y1="26" x2="26" y2="26"/><rect x="17" y="26" width="2" height="6" rx="0.5"/></svg>Kılıç</button>
                         <button class="shp" data-s="shield" title="Düşük Poligonlu Kalkan"><svg viewBox="0 0 36 36" fill="none" stroke="#90caf9" stroke-width="1.4"><path d="M18 6 C10 6 8 10 8 18 C8 26 14 30 18 32 C22 30 28 26 28 18 C28 10 26 6 18 6 Z"/><circle cx="18" cy="18" r="3"/></svg>Kalkan</button>
                         <button class="shp" data-s="chest" title="Düşük Poligonlu Sandık"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><rect x="6" y="14" width="24" height="16" rx="1"/><path d="M6 14 H30"/><rect x="16" y="12" width="4" height="4"/></svg>Sandık</button>
                         <button class="shp" data-s="barrel" title="Düşük Poligonlu Varil"><svg viewBox="0 0 36 36" fill="none" stroke="#d7ccc8" stroke-width="1.4"><ellipse cx="18" cy="8" rx="8" ry="3"/><ellipse cx="18" cy="28" rx="8" ry="3"/><line x1="10" y1="8" x2="10" y2="28"/><line x1="26" y1="8" x2="26" y2="28"/></svg>Varil</button>
                         <button class="shp" data-s="torch" title="Duvar Meşalesi"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><path d="M16 26 L18 14 L20 26 Z"/><path d="M16 14 Q18 8 20 14" stroke="#ff3d00" stroke-width="2"/></svg>Meşale</button>
                         <button class="shp" data-s="lantern" title="Sokak Feneri"><svg viewBox="0 0 36 36" fill="none" stroke="#ffd54f" stroke-width="1.4"><path d="M14 8 H22 L24 20 H12 Z"/><line x1="18" y1="20" x2="18" y2="30"/></svg>Fener</button>
+                        <button class="shp" data-s="fence" title="Düşük Poligonlu Çit"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><path d="M6 6 V30 M30 6 V30 M4 10 H32 M4 22 H32"/></svg>Çit</button>
+                        <button class="shp" data-s="boat" title="Küçük Tekne"><svg viewBox="0 0 36 36" fill="none" stroke="#64b5f6" stroke-width="1.4"><path d="M4 16 L12 26 H24 L32 16 H4 Z"/></svg>Tekne</button>
+                        <button class="shp" data-s="pillar" title="Antik Sütun"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><rect x="8" y="28" width="20" height="4" rx="0.5"/><rect x="8" y="4" width="20" height="4" rx="0.5"/><line x1="12" y1="8" x2="12" y2="28"/><line x1="24" y1="8" x2="24" y2="28"/></svg>Sütun</button>
+                        <button class="shp" data-s="flag" title="Kale Bayrağı"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><line x1="10" y1="4" x2="10" y2="32"/><polygon points="10,6 26,12 10,18"/></svg>Bayrak</button>
+                        <button class="shp" data-s="gravestone" title="Mezar Taşı"><svg viewBox="0 0 36 36" fill="none" stroke="#90a4ae" stroke-width="1.4"><path d="M10 30 V12 A8 8 0 0 1 26 12 V30 Z"/><line x1="14" y1="18" x2="22" y2="18"/><line x1="18" y1="14" x2="18" y2="22"/></svg>Mezar</button>
+                        <button class="shp" data-s="cannon" title="Gülle Topu"><svg viewBox="0 0 36 36" fill="none" stroke="#37474f" stroke-width="1.4"><line x1="8" y1="22" x2="28" y2="12" stroke-width="2"/><circle cx="12" cy="24" r="5"/><circle cx="24" cy="24" r="5"/></svg>Top</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Collapsible: Terrains & Environments -->
-            <div class="lp-sec">
-                <button class="lp-sec-hdr collapsed" data-sec="terrain">
-                    <span>ARAZİLER VE ORTAMLAR</span>
-                    <span class="sec-arrow">▸</span>
-                </button>
-                <div class="lp-sec-body collapsed" id="secTerrain">
-                    <div class="shp-grid">
-                        <button class="shp" data-s="terrain_mount" title="Dağlık Arazi"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><path d="M4 28 L14 12 L20 20 L28 10 L32 28 Z"/></svg>Dağlar</button>
-                        <button class="shp" data-s="terrain_dunes" title="Kum Tepeleri"><svg viewBox="0 0 36 36" fill="none" stroke="#ffe082" stroke-width="1.4"><path d="M4 24 Q10 16 18 22 Q26 28 32 20 L32 30 L4 30 Z"/></svg>Kumul</button>
-                        <button class="shp" data-s="terrain_canyon" title="Kanyon"><svg viewBox="0 0 36 36" fill="none" stroke="#ffab91" stroke-width="1.4"><path d="M4 14 H10 V24 L14 26 H22 L26 24 V14 H32 V30 H4 Z"/></svg>Kanyon</button>
-                        <button class="shp" data-s="terrain_hills" title="Tepelik Arazi"><svg viewBox="0 0 36 36" fill="none" stroke="#c5e1a5" stroke-width="1.4"><path d="M4 26 Q12 18 20 22 Q28 26 32 18 L32 30 L4 30 Z"/></svg>Tepelik</button>
-                        <button class="shp" data-s="terrain_lake" title="Göl / Havza"><svg viewBox="0 0 36 36" fill="none" stroke="#80deea" stroke-width="1.4"><path d="M4 22 Q12 28 18 28 Q24 28 32 22 L32 30 L4 30 Z"/></svg>Göl</button>
-                        <button class="shp" data-s="terrain_volcano" title="Volkan / Krater"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><path d="M4 28 L14 16 H22 L32 28 Z"/><path d="M14 16 Q18 20 22 16" stroke-dasharray="2,2"/></svg>Volkan</button>
-                        <button class="shp" data-s="terrain_island" title="Ada Zemin"><svg viewBox="0 0 36 36" fill="none" stroke="#80cbc4" stroke-width="1.4"><ellipse cx="18" cy="22" rx="8" ry="4"/><line x1="4" y1="26" x2="32" y2="26"/></svg>Ada</button>
-                    </div>
-                </div>
-            </div>
 
             <!-- Preset Size -->
             <div class="lp-sec">
@@ -369,6 +379,76 @@
                         <button class="qa qa-danger" id="qaDel">✕ Sil</button>
                         <button class="qa qa-danger" id="qaClear">🗑 Temizle</button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── TERRAIN TAB ─── -->
+        <div class="lp-content" id="lptTerrain">
+            <div class="lp-sec">
+                <button class="lp-sec-hdr" data-sec="terrTemplates">
+                    <span>ARAZİ ŞABLONLARI</span>
+                    <span class="sec-arrow">▾</span>
+                </button>
+                <div class="lp-sec-body" id="secTerrTemplates">
+                    <div class="shp-grid">
+                        <button class="shp-terr shp active" data-t="mount"><span class="terr-ic">🏔️</span>Dağlar</button>
+                        <button class="shp-terr shp" data-t="dunes"><span class="terr-ic">⏳</span>Kumul</button>
+                        <button class="shp-terr shp" data-t="canyon"><span class="terr-ic">🧱</span>Kanyon</button>
+                        <button class="shp-terr shp" data-t="hills"><span class="terr-ic">🍀</span>Tepelik</button>
+                        <button class="shp-terr shp" data-t="lake"><span class="terr-ic">💧</span>Göl</button>
+                        <button class="shp-terr shp" data-t="volcano"><span class="terr-ic">🌋</span>Volkan</button>
+                        <button class="shp-terr shp" data-t="island"><span class="terr-ic">🏝️</span>Ada</button>
+                        <button class="shp-terr shp" data-t="plain"><span class="terr-ic">🌾</span>Ova</button>
+                        <button class="shp-terr shp" data-t="swamp"><span class="terr-ic">🐊</span>Bataklık</button>
+                        <button class="shp-terr shp" data-t="oasis"><span class="terr-ic">🌴</span>Vaha</button>
+                        <button class="shp-terr shp" data-t="fjord"><span class="terr-ic">🗻</span>Fiyort</button>
+                        <button class="shp-terr shp" data-t="river"><span class="terr-ic">🌊</span>Nehir</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lp-sec">
+                <button class="lp-sec-hdr" data-sec="terrSettings">
+                    <span>ARAZİ AYARLARI</span>
+                    <span class="sec-arrow">▾</span>
+                </button>
+                <div class="lp-sec-body" id="secTerrSettings">
+                    <div class="lp-form">
+                        <div class="lp-row">
+                            <label>Renk Teması</label>
+                            <select id="terrTheme" class="lp-sel">
+                                <option value="grass" selected>Çimenli (Yeşil)</option>
+                                <option value="sand">Kumlu (Sarı)</option>
+                                <option value="snow">Karlı (Beyaz)</option>
+                                <option value="lava">Volkanik (Lav)</option>
+                                <option value="clay">Kanyon (Kızıl)</option>
+                                <option value="swamp">Bataklık (Koyu Yeşil)</option>
+                                <option value="stone">Kayalık (Gri)</option>
+                            </select>
+                        </div>
+                        <div class="lp-row">
+                            <label>Genişlik (mm)</label>
+                            <input type="number" id="terrW" value="60" min="10" max="1000" class="lp-inp">
+                        </div>
+                        <div class="lp-row">
+                            <label>Derinlik (mm)</label>
+                            <input type="number" id="terrD" value="60" min="10" max="1000" class="lp-inp">
+                        </div>
+                        <div class="lp-row">
+                            <label>Yükseklik</label>
+                            <input type="range" id="terrHeight" min="0.1" max="5.0" step="0.1" value="1.0" class="lp-range">
+                        </div>
+                        <div class="lp-row">
+                            <label>Pürüzlülük</label>
+                            <input type="range" id="terrRoughness" min="0.0" max="5.0" step="0.1" value="1.0" class="lp-range">
+                        </div>
+                        <div class="lp-row">
+                            <label>Detay (Segment)</label>
+                            <input type="number" id="terrSeg" value="32" min="4" max="256" class="lp-inp">
+                        </div>
+                    </div>
+                    <button class="lp-apply-btn lp-green" id="addTerrainBtn" style="margin-top:10px;">⛳ Araziyi Sahneye Ekle</button>
                 </div>
             </div>
         </div>
@@ -824,7 +904,12 @@
                                 <option value="smooth">Düzleştir (Smooth)</option>
                                 <option value="flatten">Kazı / Düzle (Flatten)</option>
                                 <option value="revert">Orjinale Döndür / Sil (Revert)</option>
+                                <option value="paint">Renk Boyama (Paint)</option>
                             </select>
+                        </div>
+                        <div class="lp-row" id="paintColorRow" style="display:none;">
+                            <label>Boya Rengi</label>
+                            <input type="color" id="sculptPaintColor" value="#ffc107" class="lp-color">
                         </div>
                         <div class="lp-row">
                             <label>Fırça Boyutu</label>
@@ -862,6 +947,7 @@
                             <div class="msw" data-c="#212121" style="background:#212121" title="Siyah"></div>
                         </div>
                     </div>
+                    <button class="lp-apply-btn lp-red" id="clearPaintBtn" style="display:none; margin-top:8px;">🎨 Boyamayı Temizle (Sıfırla)</button>
                 </div>
                 <div class="rp-sec">
                     <div class="rp-sec-hdr"><span>✨ PBR ÖZELLİKLERİ</span></div>

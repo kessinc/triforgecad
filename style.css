@@ -387,3 +387,29 @@ input,select,textarea{font-family:inherit;font-size:12px}
 .toast.error{border-left:3px solid var(--red)}
 .toast.info{border-left:3px solid var(--blu)}
 .toast.warning{border-left:3px solid var(--ora)}
+
+/* ═══ CUSTOM TERRAIN & ENVIRONMENT DESIGNER & SUBCATEGORIES ═══ */
+.shp-terr.shp.active {
+    border-color: var(--ora) !important;
+    background: rgba(227, 179, 65, 0.12) !important;
+    color: var(--ora) !important;
+    box-shadow: 0 3px 10px rgba(227, 179, 65, 0.2);
+}
+.terr-ic {
+    font-size: 20px;
+    margin-bottom: 2px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+.game-subcat-title {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--t3);
+    letter-spacing: .8px;
+    margin: 8px 0 4px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--bdr2);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
