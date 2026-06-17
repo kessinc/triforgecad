@@ -461,6 +461,23 @@
                     <button class="lp-apply-btn lp-green" id="addTerrainBtn" style="margin-top:10px;">⛳ Araziyi Sahneye Ekle</button>
                 </div>
             </div>
+
+            <!-- Collapsible: Yol ve Ulaşım Elemanları -->
+            <div class="lp-sec">
+                <button class="lp-sec-hdr collapsed" data-sec="roads">
+                    <span>YOL VE ULAŞIM ELEMANLARI</span>
+                    <span class="sec-arrow">▸</span>
+                </button>
+                <div class="lp-sec-body collapsed" id="secRoads">
+                    <div class="shp-grid">
+                        <button class="shp" data-s="road_straight" title="Düz Yol"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><rect x="10" y="4" width="16" height="28" rx="1"/><line x1="18" y1="4" x2="18" y2="32" stroke="#ffeb3b" stroke-dasharray="3,3"/></svg>Düz Yol</button>
+                        <button class="shp" data-s="road_curve" title="Virajlı Yol"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M4 26 C16 26 26 16 26 4" stroke-width="6" stroke="#2b2b2b"/><path d="M4 26 C16 26 26 16 26 4" stroke-width="0.8" stroke="#ffeb3b" stroke-dasharray="2,2"/><rect x="23" y="4" width="6" height="4"/><rect x="4" y="23" width="4" height="6"/></svg>Viraj</button>
+                        <button class="shp" data-s="road_t_junction" title="T-Kavşak"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M4 18 H32 M18 18 V32"/><line x1="4" y1="18" x2="32" y2="18" stroke="#ffeb3b" stroke-dasharray="2,2"/><line x1="18" y1="18" x2="18" y2="32" stroke="#ffeb3b" stroke-dasharray="2,2"/></svg>T-Kavşak</button>
+                        <button class="shp" data-s="road_crossroad" title="Dört Yol Kavşağı"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M18 4 V32 M4 18 H32"/><line x1="18" y1="4" x2="18" y2="32" stroke="#ffeb3b" stroke-dasharray="2,2"/><line x1="4" y1="18" x2="32" y2="18" stroke="#ffeb3b" stroke-dasharray="2,2"/></svg>Dört Yol</button>
+                        <button class="shp" data-s="road_bridge" title="Köprü Yol"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><rect x="10" y="4" width="16" height="28" rx="1"/><path d="M6 10 H30 M6 26 H30"/></svg>Köprü Yol</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- ─── OPS TAB ─── -->

@@ -248,6 +248,11 @@ const SHAPE_INFO = {
     crate:     { label:'Kasa',     color:0xd7ccc8 },
     anvil:     { label:'Örs',      color:0x424242 },
     wagon:     { label:'Vagon',    color:0x8d6e63 },
+    road_straight: { label:'Düz Yol', color:0x333333 },
+    road_curve:    { label:'Virajlı Yol', color:0x333333 },
+    road_t_junction:{ label:'T-Kavşak', color:0x333333 },
+    road_crossroad:{ label:'Dört Yol', color:0x333333 },
+    road_bridge:   { label:'Köprü Yol', color:0x333333 },
     terrain_mount:{ label:'Dağlar', color:0xa1887f },
     terrain_dunes:{ label:'Kumul',  color:0xffe082 },
     terrain_canyon:{ label:'Kanyon',color:0xffab91 },
@@ -345,14 +350,23 @@ function buildGeo(type, p = {}) {
             const geo = new THREE.PlaneGeometry(width, depth, segs, segs);
             geo.rotateX(-Math.PI/2);
             const pos = geo.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                const vx = pos.getX(i);
-                const vz = pos.getZ(i);
-                const y = Math.sin(vx * 0.05) * Math.cos(vz * 0.05) * 6 + Math.sin(vx * 0.02) * 4;
-                pos.setY(i, y);
-            }
+            const type = p.type || 'mount';
+            const hScale = p.height !== undefined ? p.height : 1.0;
+            const rScale = p.roughness !== undefined ? p.roughness : 1.0;
+            generateTerrainHeights(pos, type, s, width, depth, hScale, rScale);
             geo.computeVertexNormals();
-            return { geo, params: { w: width, d: depth, seg: segs } };
+            return {
+                geo,
+                params: {
+                    w: width,
+                    d: depth,
+                    seg: segs,
+                    type: type,
+                    height: hScale,
+                    roughness: rScale,
+                    theme: p.theme || 'grass'
+                }
+            };
         }
         case 'stairs': {
             const w = p.w || s;
@@ -747,71 +761,190 @@ function buildGeo(type, p = {}) {
                 }
             };
         }
+        case 'road_straight': {
+            const road = new THREE.BoxGeometry(8, 0.3, s); colorGeometry(road, 0x2b2b2b);
+            const curbL = new THREE.BoxGeometry(0.8, 0.6, s); curbL.translate(-4.4, 0.15, 0); colorGeometry(curbL, 0x9e9e9e);
+            const curbR = new THREE.BoxGeometry(0.8, 0.6, s); curbR.translate(4.4, 0.15, 0); colorGeometry(curbR, 0x9e9e9e);
+            const dashes = [];
+            const dashLength = s / 5;
+            for (let i = -2; i <= 2; i += 2) {
+                const dash = new THREE.BoxGeometry(0.25, 0.33, dashLength);
+                dash.translate(0, 0.02, i * (s / 4));
+                colorGeometry(dash, 0xffeb3b);
+                dashes.push(dash);
+            }
+            const merged = mergeBufferGeometries([road, curbL, curbR, ...dashes]);
+            merged.translate(0, 0.15, 0);
+            return { geo: merged || road, params: {} };
+        }
+        case 'road_curve': {
+            const segments = [];
+            const steps = 6;
+            const r = s * 0.75;
+            const w = 8;
+            const angleStep = Math.PI / 2 / steps;
+            for (let i = 0; i < steps; i++) {
+                const a = i * angleStep;
+                const nextA = (i + 1) * angleStep;
+                const midA = (a + nextA) / 2;
+                const len = r * angleStep * 1.05;
+                const roadSeg = new THREE.BoxGeometry(w, 0.3, len); colorGeometry(roadSeg, 0x2b2b2b);
+                const curbL = new THREE.BoxGeometry(0.8, 0.6, len); curbL.translate(-w/2 - 0.4, 0.15, 0); colorGeometry(curbL, 0x9e9e9e);
+                const curbR = new THREE.BoxGeometry(0.8, 0.6, len); curbR.translate(w/2 + 0.4, 0.15, 0); colorGeometry(curbR, 0x9e9e9e);
+                const dash = new THREE.BoxGeometry(0.25, 0.33, len * 0.5); dash.translate(0, 0.02, 0); colorGeometry(dash, 0xffeb3b);
+                const segMerged = mergeBufferGeometries([roadSeg, curbL, curbR, dash]);
+                const px = Math.cos(midA) * r - r/2;
+                const pz = Math.sin(midA) * r - r/2;
+                segMerged.rotateY(-midA);
+                segMerged.translate(px, 0.15, pz);
+                segments.push(segMerged);
+            }
+            const merged = mergeBufferGeometries(segments);
+            return { geo: merged, params: {} };
+        }
+        case 'road_t_junction': {
+            const mainRoad = new THREE.BoxGeometry(8, 0.3, s); colorGeometry(mainRoad, 0x2b2b2b);
+            const sideRoad = new THREE.BoxGeometry(s/2, 0.3, 8); sideRoad.translate(s/4 + 4, 0, 0); colorGeometry(sideRoad, 0x2b2b2b);
+            const curbLeft = new THREE.BoxGeometry(0.8, 0.6, s); curbLeft.translate(-4.4, 0.15, 0); colorGeometry(curbLeft, 0x9e9e9e);
+            const curbRight1 = new THREE.BoxGeometry(0.8, 0.6, s/2 - 4); curbRight1.translate(4.4, 0.15, -s/4 - 2); colorGeometry(curbRight1, 0x9e9e9e);
+            const curbRight2 = new THREE.BoxGeometry(0.8, 0.6, s/2 - 4); curbRight2.translate(4.4, 0.15, s/4 + 2); colorGeometry(curbRight2, 0x9e9e9e);
+            const curbSide1 = new THREE.BoxGeometry(s/2 - 4, 0.6, 0.8); curbSide1.translate(s/4 + 2, 0.15, -4.4); colorGeometry(curbSide1, 0x9e9e9e);
+            const curbSide2 = new THREE.BoxGeometry(s/2 - 4, 0.6, 0.8); curbSide2.translate(s/4 + 2, 0.15, 4.4); colorGeometry(curbSide2, 0x9e9e9e);
+            const dashes = [];
+            for (let i = -1.5; i <= 1.5; i += 3) {
+                if (i !== 0) {
+                    const dash = new THREE.BoxGeometry(0.25, 0.33, s/4);
+                    dash.translate(0, 0.02, i * (s/4));
+                    colorGeometry(dash, 0xffeb3b);
+                    dashes.push(dash);
+                }
+            }
+            const sideDash = new THREE.BoxGeometry(s/4, 0.33, 0.25); sideDash.translate(s/4 + 2, 0.02, 0); colorGeometry(sideDash, 0xffeb3b);
+            dashes.push(sideDash);
+            const merged = mergeBufferGeometries([mainRoad, sideRoad, curbLeft, curbRight1, curbRight2, curbSide1, curbSide2, ...dashes]);
+            merged.translate(0, 0.15, 0);
+            return { geo: merged, params: {} };
+        }
+        case 'road_crossroad': {
+            const roadNS = new THREE.BoxGeometry(8, 0.3, s); colorGeometry(roadNS, 0x2b2b2b);
+            const roadEW = new THREE.BoxGeometry(s, 0.3, 8); colorGeometry(roadEW, 0x2b2b2b);
+            const curb1 = new THREE.BoxGeometry(0.8, 0.6, s/2 - 4); curb1.translate(-4.4, 0.15, -s/4 - 2); colorGeometry(curb1, 0x9e9e9e);
+            const curb2 = new THREE.BoxGeometry(0.8, 0.6, s/2 - 4); curb2.translate(-4.4, 0.15, s/4 + 2); colorGeometry(curb2, 0x9e9e9e);
+            const curb3 = new THREE.BoxGeometry(0.8, 0.6, s/2 - 4); curb3.translate(4.4, 0.15, -s/4 - 2); colorGeometry(curb3, 0x9e9e9e);
+            const curb4 = new THREE.BoxGeometry(0.8, 0.6, s/2 - 4); curb4.translate(4.4, 0.15, s/4 + 2); colorGeometry(curb4, 0x9e9e9e);
+            const curb5 = new THREE.BoxGeometry(s/2 - 4, 0.6, 0.8); curb5.translate(-s/4 - 2, 0.15, -4.4); colorGeometry(curb5, 0x9e9e9e);
+            const curb6 = new THREE.BoxGeometry(s/2 - 4, 0.6, 0.8); curb6.translate(-s/4 - 2, 0.15, 4.4); colorGeometry(curb6, 0x9e9e9e);
+            const curb7 = new THREE.BoxGeometry(s/2 - 4, 0.6, 0.8); curb7.translate(s/4 + 2, 0.15, -4.4); colorGeometry(curb7, 0x9e9e9e);
+            const curb8 = new THREE.BoxGeometry(s/2 - 4, 0.6, 0.8); curb8.translate(s/4 + 2, 0.15, 4.4); colorGeometry(curb8, 0x9e9e9e);
+            const dashes = [];
+            const d1 = new THREE.BoxGeometry(0.25, 0.33, s/4); d1.translate(0, 0.02, -s/3); colorGeometry(d1, 0xffeb3b); dashes.push(d1);
+            const d2 = new THREE.BoxGeometry(0.25, 0.33, s/4); d2.translate(0, 0.02, s/3); colorGeometry(d2, 0xffeb3b); dashes.push(d2);
+            const d3 = new THREE.BoxGeometry(s/4, 0.33, 0.25); d3.translate(-s/3, 0.02, 0); colorGeometry(d3, 0xffeb3b); dashes.push(d3);
+            const d4 = new THREE.BoxGeometry(s/4, 0.33, 0.25); d4.translate(s/3, 0.02, 0); colorGeometry(d4, 0xffeb3b); dashes.push(d4);
+            const merged = mergeBufferGeometries([roadNS, roadEW, curb1, curb2, curb3, curb4, curb5, curb6, curb7, curb8, ...dashes]);
+            merged.translate(0, 0.15, 0);
+            return { geo: merged, params: {} };
+        }
+        case 'road_bridge': {
+            const road = new THREE.BoxGeometry(8, 0.3, s); road.translate(0, s/3, 0); colorGeometry(road, 0x2b2b2b);
+            const curbL = new THREE.BoxGeometry(0.8, 0.6, s); curbL.translate(-4.4, s/3 + 0.15, 0); colorGeometry(curbL, 0x9e9e9e);
+            const curbR = new THREE.BoxGeometry(0.8, 0.6, s); curbR.translate(4.4, s/3 + 0.15, 0); colorGeometry(curbR, 0x9e9e9e);
+            const pil1 = new THREE.BoxGeometry(8, s/3, 2); pil1.translate(0, s/6, -s*0.3); colorGeometry(pil1, 0xcccccc);
+            const pil2 = new THREE.BoxGeometry(8, s/3, 2); pil2.translate(0, s/6, s*0.3); colorGeometry(pil2, 0xcccccc);
+            const merged = mergeBufferGeometries([road, curbL, curbR, pil1, pil2]);
+            return { geo: merged, params: {} };
+        }
         default:
             return { geo: new THREE.BoxGeometry(s,s,s), params:{ w:s, h:s, d:s } };
     }
 }
 
 function generateTerrainHeights(pos, type, s, w, d, heightScale, roughnessScale) {
+    const maxDist = Math.min(w, d) / 2;
     for (let i = 0; i < pos.count; i++) {
         const vx = pos.getX(i);
         const vz = pos.getZ(i);
+        const distCenter = Math.sqrt(vx*vx + vz*vz);
         let y = 0;
         
         if (type === 'mount') {
-            y = Math.sin(vx * 0.08) * Math.cos(vz * 0.08) * 12 + 
-                Math.sin(vx * 0.2) * Math.cos(vz * 0.2) * 3 * roughnessScale + 
-                Math.abs(Math.sin(vx * 0.02)) * 8;
-            y *= heightScale;
+            const centerPeak = Math.max(0, maxDist * 0.4 - distCenter * 0.4);
+            y = (centerPeak * 1.5 + Math.sin(vx * 0.08) * Math.cos(vz * 0.08) * 10 + Math.sin(vx * 0.25) * Math.cos(vz * 0.25) * 2 * roughnessScale) * heightScale;
         } else if (type === 'dunes') {
-            y = (Math.sin(vx * 0.04 + vz * 0.02) * 4.5 + Math.sin(vx * 0.08) * 1.2 * roughnessScale) * heightScale;
+            const wave = Math.abs(Math.sin(vx * 0.05 + vz * 0.02)) * 5;
+            y = (wave + Math.sin(vx * 0.15) * Math.cos(vz * 0.15) * 0.5 * roughnessScale) * heightScale;
         } else if (type === 'canyon') {
-            const dist = Math.abs(vz);
-            const canyonBase = dist < s * 0.35 ? -6 : (dist - s * 0.35) * 1.6;
-            const noise = Math.sin(vx * 0.12) * Math.cos(vz * 0.12) * 2 * roughnessScale;
-            y = Math.min(14, canyonBase + noise) * heightScale;
+            const rawHeight = Math.sin(vx * 0.05) * Math.cos(vz * 0.05) * 12;
+            const stepHeight = Math.floor(rawHeight / 4) * 4;
+            y = (stepHeight + Math.sin(vx * 0.2) * 0.5 * roughnessScale) * heightScale;
         } else if (type === 'hills') {
-            y = (Math.sin(vx * 0.035) * 5 + Math.cos(vz * 0.035) * 5 + Math.sin(vx * 0.1) * roughnessScale) * heightScale;
+            y = (Math.sin(vx * 0.04) * 5 + Math.cos(vz * 0.04) * 5 + Math.sin(vx * 0.12) * Math.cos(vz * 0.12) * 1.0 * roughnessScale) * heightScale;
         } else if (type === 'lake') {
-            const maxDist = w / 2;
-            const dist = Math.sqrt(vx*vx + vz*vz);
-            const base = dist < maxDist * 0.5 ? -8 + (dist / (maxDist * 0.5)) * 4 : -4 + (dist - maxDist * 0.5) * 0.3;
-            y = (base + Math.sin(vx * 0.1) * 0.5 * roughnessScale) * heightScale;
-        } else if (type === 'volcano') {
-            const dist = Math.sqrt(vx*vx + vz*vz);
-            if (dist < s * 0.2) {
-                y = s * 0.7 - (s * 0.2 - dist) * 2.2;
+            let base = 0;
+            if (distCenter < maxDist * 0.6) {
+                const t = distCenter / (maxDist * 0.6);
+                base = -7 * (1 - t*t) - 2;
             } else {
-                y = Math.max(-1, s * 0.7 - (dist - s * 0.2) * 1.1);
+                const t = (distCenter - maxDist * 0.6) / (maxDist * 0.4);
+                base = -2 + t * 4;
             }
-            const noise = Math.sin(vx * 0.1) * 1.5 * roughnessScale;
-            y = (y + noise) * heightScale;
+            y = (base + Math.sin(vx * 0.15) * Math.cos(vz * 0.15) * 0.6 * roughnessScale) * heightScale;
+        } else if (type === 'volcano') {
+            const radius = maxDist * 0.35;
+            let base = 0;
+            if (distCenter < radius) {
+                base = 12 - (radius - distCenter) * 2.2;
+            } else {
+                base = Math.max(-1, 12 - (distCenter - radius) * 1.4);
+            }
+            y = (base + Math.sin(vx * 0.15) * Math.cos(vz * 0.15) * 1.0 * roughnessScale) * heightScale;
         } else if (type === 'island') {
-            const maxDist = w / 2;
-            const dist = Math.sqrt(vx*vx + vz*vz);
-            y = Math.max(-2, (1 - dist / maxDist) * 13 + Math.sin(vx * 0.08) * 1.5 * roughnessScale) * heightScale;
+            y = Math.max(-2, (1 - distCenter / maxDist) * 13 + Math.sin(vx * 0.08) * Math.cos(vz * 0.08) * 1.5 * roughnessScale) * heightScale;
         } else if (type === 'plain') {
-            y = (Math.sin(vx * 0.02) * Math.cos(vz * 0.02) * 1.5 + Math.sin(vx * 0.08) * 0.5 * roughnessScale) * heightScale;
+            y = (Math.sin(vx * 0.02) * Math.cos(vz * 0.02) * 1.2 + Math.sin(vx * 0.08) * 0.3 * roughnessScale) * heightScale;
         } else if (type === 'swamp') {
-            const base = Math.sin(vx * 0.02) * Math.cos(vz * 0.02) * 1.0;
-            const dip = Math.sin(vx * 0.04) * Math.cos(vz * 0.04) < -0.1 ? -2 : 0;
-            y = (base + dip + Math.sin(vx * 0.1) * 0.3 * roughnessScale) * heightScale;
+            const noise1 = Math.sin(vx * 0.08) * Math.cos(vz * 0.08);
+            const noise2 = Math.sin(vx * 0.2) * Math.cos(vz * 0.2) * 0.4 * roughnessScale;
+            const base = noise1 * 1.5 + noise2;
+            y = (base < -0.4 ? -1.0 : base) * heightScale;
         } else if (type === 'oasis') {
-            const dist = Math.sqrt(vx*vx + vz*vz);
-            const maxDist = w / 2;
-            const dunes = Math.sin(vx * 0.04 + vz * 0.02) * 3.5;
-            const base = dist < maxDist * 0.3 ? -5 + (dist / (maxDist * 0.3)) * 4 : dunes;
-            y = (base + Math.sin(vx * 0.1) * 0.5 * roughnessScale) * heightScale;
+            let base = 0;
+            if (distCenter < maxDist * 0.35) {
+                const t = distCenter / (maxDist * 0.35);
+                base = -5 * (1 - t*t) - 1.5;
+            } else {
+                const t = (distCenter - maxDist * 0.35) / (maxDist * 0.65);
+                const dunesWave = Math.sin(vx * 0.05 + vz * 0.03) * 3.5;
+                const ring = Math.sin(t * Math.PI) * 5;
+                base = ring + dunesWave - 1.5;
+            }
+            y = (base + Math.sin(vx * 0.2) * 0.4 * roughnessScale) * heightScale;
         } else if (type === 'fjord') {
-            const dist = Math.abs(vz);
-            const base = dist < s * 0.25 ? -10 : (dist - s * 0.25) * 2.5;
-            const noise = Math.sin(vx * 0.1) * Math.cos(vz * 0.1) * 2 * roughnessScale;
+            const distZ = Math.abs(vz);
+            const channelW = maxDist * 0.35;
+            let base = 0;
+            if (distZ < channelW) {
+                base = -8;
+            } else {
+                const t = (distZ - channelW) / (maxDist - channelW);
+                base = -8 + t * t * 18;
+            }
+            const noise = Math.sin(vx * 0.15) * Math.cos(vz * 0.15) * 1.8 * roughnessScale;
             y = (base + noise) * heightScale;
         } else if (type === 'river') {
-            const wPath = vz - Math.sin(vx * 0.04) * (s * 0.4);
-            const dist = Math.abs(wPath);
-            const base = dist < s * 0.2 ? -5 : (dist - s * 0.2) * 1.5;
-            const noise = Math.cos(vx * 0.05) * 3 + Math.sin(vx * 0.1) * roughnessScale;
+            const offset = Math.sin(vx * 0.06) * (maxDist * 0.4);
+            const distZ = Math.abs(vz - offset);
+            const channelW = maxDist * 0.25;
+            let base = 0;
+            if (distZ < channelW) {
+                const t = distZ / channelW;
+                base = -4.5 * (1 - t*t) - 2;
+            } else {
+                const t = (distZ - channelW) / (maxDist - channelW);
+                base = -2 + t * 5.5;
+            }
+            const noiseMultiplier = distZ < channelW ? 0.15 : 1.0;
+            const noise = Math.sin(vx * 0.12) * Math.cos(vz * 0.12) * 1.5 * roughnessScale * noiseMultiplier;
             y = (base + noise) * heightScale;
         } else {
             y = Math.sin(vx * 0.05) * Math.cos(vz * 0.05) * 2 * roughnessScale * heightScale;
@@ -884,7 +1017,14 @@ function addObject(type, extraParams = {}) {
         defaultColor = colors[theme] || defaultColor;
     }
     
-    const mat = new THREE.MeshStandardMaterial({ color: defaultColor, metalness: 0.2, roughness: 0.8 });
+    const matParams = { metalness: 0.2, roughness: 0.8 };
+    if (geo.attributes.color) {
+        matParams.vertexColors = true;
+        matParams.color = 0xffffff;
+    } else {
+        matParams.color = defaultColor;
+    }
+    const mat = new THREE.MeshStandardMaterial(matParams);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.castShadow = true; mesh.receiveShadow = true;
     // Seat on grid
@@ -892,6 +1032,7 @@ function addObject(type, extraParams = {}) {
     mesh.position.y = -bb.min.y;
     mesh.userData = { id: uid(), type, name: `${info.label} ${APP.objects.length+1}`, params, visible:true, locked:false };
     addWireEdges(mesh);
+    if (type.startsWith('terrain')) updateTerrainWater(mesh);
     APP.scene.add(mesh); APP.objects.push(mesh);
     selectObj(mesh); refreshOutliner(); updateStats();
     saveHist('add');
@@ -923,13 +1064,16 @@ function rebuildGeometry(mesh, newParams) {
     mesh.userData.params = { ...mesh.userData.params, ...newParams };
     mesh.userData.origPosition = null; // Reset original positions copy
     
-    if (mesh.userData.type.startsWith('terrain') && newParams.theme) {
-        const colors = { grass: '#4caf50', sand: '#ffcc80', snow: '#f5f5f5', lava: '#263238', clay: '#d84315', swamp: '#33691e', stone: '#78909c' };
-        const hex = colors[newParams.theme];
-        if (hex) {
-            mesh.material.color.set(hex);
-            if (el('matCol')) el('matCol').value = hex;
+    if (mesh.userData.type.startsWith('terrain')) {
+        if (newParams.theme) {
+            const colors = { grass: '#4caf50', sand: '#ffcc80', snow: '#f5f5f5', lava: '#263238', clay: '#d84315', swamp: '#33691e', stone: '#78909c' };
+            const hex = colors[newParams.theme];
+            if (hex) {
+                mesh.material.color.set(hex);
+                if (el('matCol')) el('matCol').value = hex;
+            }
         }
+        updateTerrainWater(mesh);
     }
     
     rebuildWireEdges(mesh);
@@ -2288,7 +2432,7 @@ function clearEditHelpers() {
 function refreshOutliner() {
     const out=el('outliner');
     if (!APP.objects.length) { out.innerHTML='<div class="out-empty">Sahne boş</div>'; return; }
-    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️',bridge:'🌉',torch:'🕯️',lantern:'🏮',fence:'🚧',well:'⛲',campfire:'🔥',tent:'⛺',windmill:'⚙️',boat:'⛵',crystal:'💎',pillar:'🏛️',flag:'🚩',gravestone:'🪦',castle:'🏰',lighthouse:'🚨',pine:'🌲',mushroom:'🍄',cannon:'💥',ruins:'🏛️',cabin:'🏚️',portal:'🌀',cactus:'🌵',cloud:'☁️',flower:'🌸',crate:'📦',anvil:'🔨',wagon:'🛒',terrain:'⛳',terrain_mount:'🏔️',terrain_dunes:'⏳',terrain_canyon:'🧱',terrain_hills:'🍀',terrain_lake:'💧',terrain_volcano:'🌋',terrain_island:'🏝️',terrain_plain:'🌾',terrain_swamp:'🐊',terrain_oasis:'🌴',terrain_fjord:'🗻',terrain_river:'🌊'};
+    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️',bridge:'🌉',torch:'🕯️',lantern:'🏮',fence:'🚧',well:'⛲',campfire:'🔥',tent:'⛺',windmill:'⚙️',boat:'⛵',crystal:'💎',pillar:'🏛️',flag:'🚩',gravestone:'🪦',castle:'🏰',lighthouse:'🚨',pine:'🌲',mushroom:'🍄',cannon:'💥',ruins:'🏛️',cabin:'🏚️',portal:'🌀',cactus:'🌵',cloud:'☁️',flower:'🌸',crate:'📦',anvil:'🔨',wagon:'🛒',road_straight:'🛣️',road_curve:'↪️',road_t_junction:'┫',road_crossroad:'➕',road_bridge:'🌉',terrain:'⛳',terrain_mount:'🏔️',terrain_dunes:'⏳',terrain_canyon:'🧱',terrain_hills:'🍀',terrain_lake:'💧',terrain_volcano:'🌋',terrain_island:'🏝️',terrain_plain:'🌾',terrain_swamp:'🐊',terrain_oasis:'🌴',terrain_fjord:'🗻',terrain_river:'🌊'};
     out.innerHTML=APP.objects.map(obj=>{
         const ic=icons[obj.userData.type]||'○';
         const sel=APP.selected?.userData.id===obj.userData.id;
@@ -2659,6 +2803,7 @@ function initPanelTabs() {
             const key=this.dataset.lpt;
             const c=el('lpt'+key.charAt(0).toUpperCase()+key.slice(1));
             if (c) c.classList.add('active');
+            toggleMapDesignMode(key === 'terrain');
         });
     });
     // Right panel tabs
@@ -2973,6 +3118,119 @@ function bindKeyboard() {
             case '7': if(!e.ctrlKey) setView('Top'); break;
         }
     });
+}
+
+function colorGeometry(geo, color) {
+    const count = geo.attributes.position.count;
+    const colors = new Float32Array(count * 3);
+    const c = new THREE.Color(color);
+    for (let i = 0; i < count; i++) {
+        colors[i*3] = c.r;
+        colors[i*3+1] = c.g;
+        colors[i*3+2] = c.b;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+}
+
+function toggleMapDesignMode(enable) {
+    if (enable) {
+        APP.scene.background = new THREE.Color(0xaaccff);
+        if (APP.scene.fog) {
+            APP.scene.fog.color.set(0xaaccff);
+            APP.scene.fog.density = 0.0035;
+        } else {
+            APP.scene.fog = new THREE.FogExp2(0xaaccff, 0.0035);
+        }
+        if (APP.grid) APP.grid.visible = false;
+        if (APP.axesHelper) APP.axesHelper.visible = false;
+        if (APP.ambLight) {
+            APP.ambLight.intensity = 1.4;
+            APP.ambLight.color.set(0xe0f0ff);
+        }
+        if (APP.sunLight) {
+            APP.sunLight.intensity = 1.8;
+            APP.sunLight.color.set(0xfffaf0);
+        }
+        if (!APP.grassGround) {
+            const grassGeo = new THREE.PlaneGeometry(10000, 10000);
+            const grassMat = new THREE.MeshStandardMaterial({
+                color: 0x4caf50,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+            APP.grassGround = new THREE.Mesh(grassGeo, grassMat);
+            APP.grassGround.rotateX(-Math.PI / 2);
+            APP.grassGround.position.y = -0.05;
+            APP.grassGround.receiveShadow = true;
+            APP.scene.add(APP.grassGround);
+        }
+        APP.grassGround.visible = true;
+        toast('🏞️ Harita Tasarım Modu aktif', 'info', 1500);
+    } else {
+        APP.scene.background = new THREE.Color(0x060a0e);
+        if (APP.scene.fog) {
+            APP.scene.fog.color.set(0x060a0e);
+            APP.scene.fog.density = 0.0022;
+        }
+        if (APP.grid) APP.grid.visible = el('tglGrid')?.checked !== false;
+        if (APP.axesHelper) APP.axesHelper.visible = true;
+        if (APP.ambLight) {
+            APP.ambLight.intensity = 1.0;
+            APP.ambLight.color.set(0x3a4a60);
+        }
+        if (APP.sunLight) {
+            APP.sunLight.intensity = 1.5;
+            APP.sunLight.color.set(0xffffff);
+        }
+        if (APP.grassGround) {
+            APP.grassGround.visible = false;
+        }
+    }
+}
+
+function updateTerrainWater(mesh) {
+    const oldWater = mesh.children.find(c => c.userData && c.userData.isWater);
+    if (oldWater) {
+        mesh.remove(oldWater);
+        oldWater.geometry.dispose();
+        oldWater.material.dispose();
+    }
+    const type = mesh.userData.params?.type || '';
+    const isWaterTerrain = ['lake', 'river', 'swamp', 'oasis'].includes(type);
+    if (isWaterTerrain) {
+        const w = mesh.userData.params.w || 60;
+        const d = mesh.userData.params.d || 60;
+        const waterGeo = new THREE.PlaneGeometry(w, d);
+        waterGeo.rotateX(-Math.PI / 2);
+        let waterY = -2.0;
+        let waterColor = 0x22aaff;
+        let waterOpacity = 0.7;
+        if (type === 'swamp') {
+            waterY = -0.5;
+            waterColor = 0x2b3d26;
+            waterOpacity = 0.85;
+        } else if (type === 'oasis') {
+            waterY = -1.5;
+            waterColor = 0x00e5ff;
+            waterOpacity = 0.65;
+        } else if (type === 'river') {
+            waterY = -2.5;
+            waterColor = 0x22c2ff;
+            waterOpacity = 0.7;
+        }
+        const waterMat = new THREE.MeshStandardMaterial({
+            color: waterColor,
+            roughness: 0.1,
+            metalness: 0.7,
+            transparent: true,
+            opacity: waterOpacity
+        });
+        const waterMesh = new THREE.Mesh(waterGeo, waterMat);
+        waterMesh.position.y = waterY * (mesh.userData.params.height || 1.0);
+        waterMesh.userData = { isWater: true };
+        waterMesh.receiveShadow = true;
+        mesh.add(waterMesh);
+    }
 }
 
 /* ════════════════════════════════════════
