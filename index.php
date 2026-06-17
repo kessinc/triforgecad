@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/OBJExporter.js"></script>
 </head>
@@ -299,6 +300,9 @@
                         <button class="shp" data-s="sword" title="Düşük Poligonlu Kılıç"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M18 4 L21 8 V24 L18 26 L15 24 V8 Z"/><line x1="10" y1="26" x2="26" y2="26"/><rect x="17" y="26" width="2" height="6" rx="0.5"/></svg>Kılıç</button>
                         <button class="shp" data-s="tower" title="Kale Kulesi"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><path d="M8 30 V12 L11 8 H25 L28 12 V30 Z"/><rect x="14" y="18" width="8" height="12"/><line x1="8" y1="12" x2="28" y2="12"/></svg>Kule</button>
                         <button class="shp" data-s="rock" title="Düşük Poligonlu Kaya"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><polygon points="18,6 28,12 30,24 18,30 8,24 6,12"/></svg>Kaya</button>
+                        <button class="shp" data-s="shield" title="Düşük Poligonlu Kalkan"><svg viewBox="0 0 36 36" fill="none" stroke="#90caf9" stroke-width="1.4"><path d="M18 6 C10 6 8 10 8 18 C8 26 14 30 18 32 C22 30 28 26 28 18 C28 10 26 6 18 6 Z"/><circle cx="18" cy="18" r="3"/></svg>Kalkan</button>
+                        <button class="shp" data-s="chest" title="Düşük Poligonlu Sandık"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><rect x="6" y="14" width="24" height="16" rx="1"/><path d="M6 14 H30"/><rect x="16" y="12" width="4" height="4"/></svg>Sandık</button>
+                        <button class="shp" data-s="barrel" title="Düşük Poligonlu Varil"><svg viewBox="0 0 36 36" fill="none" stroke="#d7ccc8" stroke-width="1.4"><ellipse cx="18" cy="8" rx="8" ry="3"/><ellipse cx="18" cy="28" rx="8" ry="3"/><line x1="10" y1="8" x2="10" y2="28"/><line x1="26" y1="8" x2="26" y2="28"/></svg>Varil</button>
                     </div>
                 </div>
             </div>

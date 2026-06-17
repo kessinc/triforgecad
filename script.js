@@ -217,6 +217,9 @@ const SHAPE_INFO = {
     sword:    { label:'Kılıç',     color:0xe0e0e0 },
     tower:    { label:'Kule',     color:0xb0bec5 },
     rock:     { label:'Kaya',     color:0xa1887f },
+    shield:   { label:'Kalkan',   color:0x90caf9 },
+    chest:    { label:'Sandık',   color:0xa1887f },
+    barrel:   { label:'Varil',    color:0xd7ccc8 },
 };
 
 function buildGeo(type, p = {}) {
@@ -383,14 +386,61 @@ function buildGeo(type, p = {}) {
             rockGeo.computeVertexNormals();
             return { geo: rockGeo, params: {} };
         }
+        case 'shield': {
+            const base = new THREE.CylinderGeometry(s*0.4, s*0.4, s*0.06, 6);
+            base.rotateX(Math.PI/2);
+            base.translate(0, s*0.4, 0);
+            const boss = new THREE.SphereGeometry(s*0.1, 8, 8);
+            boss.translate(0, s*0.4, s*0.03);
+            const merged = mergeBufferGeometries([base, boss]);
+            return { geo: merged || base, params: {} };
+        }
+        case 'chest': {
+            const base = new THREE.BoxGeometry(s*0.8, s*0.4, s*0.5);
+            base.translate(0, s*0.2, 0);
+            const lid = new THREE.BoxGeometry(s*0.8, s*0.2, s*0.5);
+            lid.translate(0, s*0.5, 0);
+            const lock = new THREE.BoxGeometry(s*0.08, s*0.12, s*0.05);
+            lock.translate(0, s*0.35, s*0.27);
+            const merged = mergeBufferGeometries([base, lid, lock]);
+            return { geo: merged || base, params: {} };
+        }
+        case 'barrel': {
+            const body = new THREE.CylinderGeometry(s*0.35, s*0.35, s*0.8, 10);
+            body.translate(0, s*0.4, 0);
+            const hoop1 = new THREE.TorusGeometry(s*0.36, s*0.02, 4, 10);
+            hoop1.rotateX(Math.PI/2);
+            hoop1.translate(0, s*0.6, 0);
+            const hoop2 = new THREE.TorusGeometry(s*0.36, s*0.02, 4, 10);
+            hoop2.rotateX(Math.PI/2);
+            hoop2.translate(0, s*0.2, 0);
+            const merged = mergeBufferGeometries([body, hoop1, hoop2]);
+            return { geo: merged || body, params: {} };
+        }
         default:
             return { geo: new THREE.BoxGeometry(s,s,s), params:{ w:s, h:s, d:s } };
     }
 }
 
 function mergeBufferGeometries(geos) {
-    // Convert all to non-indexed to avoid indexing mismatches
-    const nonIndexedGeos = geos.map(g => g.index ? g.toNonIndexed() : g.clone());
+    try {
+        if (typeof THREE.BufferGeometryUtils !== 'undefined' && THREE.BufferGeometryUtils.mergeBufferGeometries) {
+            const merged = THREE.BufferGeometryUtils.mergeBufferGeometries(geos);
+            if (merged) {
+                merged.clearGroups(); // Clear groups to avoid multi-material rendering issues
+                return merged;
+            }
+        }
+    } catch (e) {
+        console.error('BufferGeometryUtils failed, falling back to manual merge:', e);
+    }
+    
+    // Fallback: manual non-indexed merge if BufferGeometryUtils is not loaded for some reason
+    const nonIndexedGeos = geos.map(g => {
+        const newG = g.index ? g.toNonIndexed() : g.clone();
+        newG.clearGroups(); // Clear groups to avoid group rendering issues in manual fallback
+        return newG;
+    });
     
     let vc = 0;
     nonIndexedGeos.forEach(g => { vc += g.attributes.position.count; });
@@ -400,13 +450,18 @@ function mergeBufferGeometries(geos) {
     nonIndexedGeos.forEach(g => {
         const pa = g.attributes.position, na = g.attributes.normal;
         for (let i=0; i<pa.count; i++) {
-            pos[(off+i)*3]   = pa.getX(i); pos[(off+i)*3+1] = pa.getY(i); pos[(off+i)*3+2] = pa.getZ(i);
-            if (na) { nrm[(off+i)*3] = na.getX(i); nrm[(off+i)*3+1] = na.getY(i); nrm[(off+i)*3+2] = na.getZ(i); }
+            pos[(off+i)*3]   = pa.getX(i);
+            pos[(off+i)*3+1] = pa.getY(i);
+            pos[(off+i)*3+2] = pa.getZ(i);
+            if (na) {
+                nrm[(off+i)*3]   = na.getX(i);
+                nrm[(off+i)*3+1] = na.getY(i);
+                nrm[(off+i)*3+2] = na.getZ(i);
+            }
         }
         off += pa.count;
     });
     
-    // Clean up cloned geometries to prevent memory leaks
     nonIndexedGeos.forEach(g => g.dispose());
     
     const out = new THREE.BufferGeometry();
@@ -1695,7 +1750,7 @@ function clearEditHelpers() {
 function refreshOutliner() {
     const out=el('outliner');
     if (!APP.objects.length) { out.innerHTML='<div class="out-empty">Sahne boş</div>'; return; }
-    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨'};
+    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️'};
     out.innerHTML=APP.objects.map(obj=>{
         const ic=icons[obj.userData.type]||'○';
         const sel=APP.selected?.userData.id===obj.userData.id;

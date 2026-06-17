@@ -65,6 +65,9 @@ Oyun geliştiricileri ve low-poly (düşük poligonlu) tarzı sevenler için öz
 - **Kılıç:** Kabzası, siperliği ve keskin ağzı olan low-poly kılıç modeli.
 - **Kule:** Burçları olan dairesel kale/savunma kulesi.
 - **Kaya:** Doğal görünümlü, köşeli low-poly kaya/boulder parçası.
+- **Kalkan:** Dairesel kabartması ve kenarları olan hexagonal low-poly şovalye kalkanı.
+- **Sandık:** Gövdesi, kapağı ve ön kilidi bulunan ahşap görünümlü hazine sandığı.
+- **Varil:** Dış kasnağı ve demir çemberleri olan low-poly klasik fıçı/varil.
 
 ---
 
