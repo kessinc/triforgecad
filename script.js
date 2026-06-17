@@ -270,6 +270,8 @@ const SHAPE_INFO = {
     terrain_oasis: { label:'Vaha',   color:0xffcc80 },
     terrain_fjord: { label:'Fiyort', color:0x78909c },
     terrain_river: { label:'Nehir',   color:0x80deea },
+    karambit:      { label:'Karambit', color:0xffffff },
+    kelebek:       { label:'Kelebek',  color:0xffffff },
 };
 
 function buildGeo(type, p = {}) {
@@ -917,6 +919,103 @@ function buildGeo(type, p = {}) {
             const merged = mergeBufferGeometries([road, curbL, curbR, pil1, pil2]);
             return { geo: merged, params: {} };
         }
+        case 'karambit': {
+            const wVal = p.w !== undefined ? p.w : 70;
+            const hVal = p.h !== undefined ? p.h : 80;
+            const tVal = p.t !== undefined ? p.t : 8;
+            
+            const ringR = 12;
+            const ringTube = tVal / 2.5;
+            const ring = new THREE.TorusGeometry(ringR, ringTube, 8, 24);
+            
+            const handleShape = new THREE.Shape();
+            const handleScaleY = hVal / 80;
+            const handleScaleX = 1.0;
+            
+            handleShape.moveTo(0, 14 * handleScaleY);
+            handleShape.quadraticCurveTo(12 * handleScaleX, 35 * handleScaleY, 15 * handleScaleX, 55 * handleScaleY);
+            handleShape.quadraticCurveTo(12 * handleScaleX, 70 * handleScaleY, 8 * handleScaleX, 75 * handleScaleY);
+            handleShape.lineTo(-2 * handleScaleX, 70 * handleScaleY);
+            handleShape.quadraticCurveTo(2 * handleScaleX, 55 * handleScaleY, 0 * handleScaleX, 35 * handleScaleY);
+            handleShape.quadraticCurveTo(-8 * handleScaleX, 22 * handleScaleY, -10 * handleScaleX, 12 * handleScaleY);
+            handleShape.closePath();
+            
+            const handleGeo = new THREE.ExtrudeGeometry(handleShape, { depth: tVal, bevelEnabled: true, bevelThickness: 1, bevelSize: 0.5, bevelSegments: 2 });
+            handleGeo.translate(0, 0, -tVal/2);
+            
+            const bladeShape = new THREE.Shape();
+            const bladeScaleY = wVal / 70;
+            const bladeScaleX = wVal / 70;
+            
+            bladeShape.moveTo(8 * handleScaleX, 75 * handleScaleY);
+            bladeShape.quadraticCurveTo(24 * bladeScaleX, 95 * bladeScaleY, 26 * bladeScaleX, 115 * bladeScaleY);
+            bladeShape.quadraticCurveTo(16 * bladeScaleX, 130 * bladeScaleY, 12 * bladeScaleX, 132 * bladeScaleY);
+            bladeShape.quadraticCurveTo(16 * bladeScaleX, 110 * bladeScaleY, 8 * bladeScaleX, 90 * bladeScaleY);
+            bladeShape.quadraticCurveTo(1 * bladeScaleX, 76 * bladeScaleY, -2 * handleScaleX, 70 * handleScaleY);
+            bladeShape.closePath();
+            
+            const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, { depth: tVal * 0.45, bevelEnabled: true, bevelThickness: 0.5, bevelSize: 0.2, bevelSegments: 1 });
+            bladeGeo.translate(0, 0, -tVal * 0.225);
+            
+            colorGeometry(ring, 0xffffff);
+            colorGeometry(handleGeo, 0xffffff);
+            colorGeometry(bladeGeo, 0xffffff);
+            
+            const merged = mergeBufferGeometries([ring, handleGeo, bladeGeo]);
+            return { geo: merged || handleGeo, params: { w: wVal, h: hVal, t: tVal } };
+        }
+        case 'kelebek': {
+            const wVal = p.w !== undefined ? p.w : 85;
+            const hVal = p.h !== undefined ? p.h : 95;
+            const tVal = p.t !== undefined ? p.t : 7;
+            
+            const bladeShape = new THREE.Shape();
+            const bladeW = 10;
+            bladeShape.moveTo(-bladeW/2, 0);
+            bladeShape.lineTo(bladeW/2, 0);
+            bladeShape.lineTo(bladeW/2, 10);
+            bladeShape.quadraticCurveTo(bladeW/2 - 1, wVal * 0.6, 2, wVal - 10);
+            bladeShape.lineTo(0, wVal);
+            bladeShape.lineTo(-3, wVal - 15);
+            bladeShape.quadraticCurveTo(-bladeW/2 + 2, wVal * 0.5, -bladeW/2, 10);
+            bladeShape.closePath();
+            
+            const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, { depth: tVal * 0.4, bevelEnabled: true, bevelThickness: 0.4, bevelSize: 0.1, bevelSegments: 1 });
+            bladeGeo.translate(0, 0, -tVal * 0.2);
+            
+            const handleW = 6;
+            const handleGapX = 6.5;
+            
+            const leftOuter = new THREE.BoxGeometry(handleW, hVal, tVal * 0.3);
+            leftOuter.translate(-handleGapX, -hVal/2, tVal * 0.32);
+            const leftInner = new THREE.BoxGeometry(handleW, hVal, tVal * 0.3);
+            leftInner.translate(-handleGapX, -hVal/2, -tVal * 0.32);
+            
+            const rightOuter = new THREE.BoxGeometry(handleW, hVal, tVal * 0.3);
+            rightOuter.translate(handleGapX, -hVal/2, tVal * 0.32);
+            const rightInner = new THREE.BoxGeometry(handleW, hVal, tVal * 0.3);
+            rightInner.translate(handleGapX, -hVal/2, -tVal * 0.32);
+            
+            const pinGeo1 = new THREE.CylinderGeometry(1.2, 1.2, tVal * 1.1, 8);
+            pinGeo1.rotateX(Math.PI/2);
+            pinGeo1.translate(-handleGapX, 4, 0);
+            
+            const pinGeo2 = new THREE.CylinderGeometry(1.2, 1.2, tVal * 1.1, 8);
+            pinGeo2.rotateX(Math.PI/2);
+            pinGeo2.translate(handleGapX, 4, 0);
+            
+            colorGeometry(bladeGeo, 0xffffff);
+            colorGeometry(leftOuter, 0xffffff);
+            colorGeometry(leftInner, 0xffffff);
+            colorGeometry(rightOuter, 0xffffff);
+            colorGeometry(rightInner, 0xffffff);
+            colorGeometry(pinGeo1, 0xffffff);
+            colorGeometry(pinGeo2, 0xffffff);
+            
+            const merged = mergeBufferGeometries([bladeGeo, leftOuter, leftInner, rightOuter, rightInner, pinGeo1, pinGeo2]);
+            merged.translate(0, hVal, 0);
+            return { geo: merged, params: { w: wVal, h: hVal, t: tVal } };
+        }
         default:
             return { geo: new THREE.BoxGeometry(s,s,s), params:{ w:s, h:s, d:s } };
     }
@@ -1432,6 +1531,75 @@ function syncXYZ(obj) {
 
 function buildGeoParamsList(obj) {
     const list = el('geoParamsList'); list.innerHTML = '';
+    
+    if (obj.userData.type === 'karambit' || obj.userData.type === 'kelebek') {
+        const type = obj.userData.type;
+        const p = obj.userData.params || {};
+        const wVal = p.w !== undefined ? p.w : (type === 'karambit' ? 70 : 85);
+        const hVal = p.h !== undefined ? p.h : (type === 'karambit' ? 80 : 95);
+        const tVal = p.t !== undefined ? p.t : (type === 'karambit' ? 8 : 7);
+
+        list.innerHTML = `
+            <div class="gp-r" style="margin-bottom:8px;">
+                <label>Boyut Şablonu</label>
+                <select id="printPreset" class="lp-sel" style="width:120px;">
+                    <option value="custom">Özel Boyut</option>
+                    <option value="std" ${wVal === (type === 'karambit' ? 70 : 85) && hVal === (type === 'karambit' ? 80 : 95) && tVal === (type === 'karambit' ? 8 : 7) ? 'selected' : ''}>Standart (1:1)</option>
+                    <option value="small" ${wVal === (type === 'karambit' ? 45 : 55) && hVal === (type === 'karambit' ? 55 : 65) && tVal === (type === 'karambit' ? 6 : 5) ? 'selected' : ''}>Küçük Boy</option>
+                    <option value="large" ${wVal === (type === 'karambit' ? 100 : 120) && hVal === (type === 'karambit' ? 110 : 130) && tVal === (type === 'karambit' ? 10 : 9) ? 'selected' : ''}>Büyük Boy</option>
+                </select>
+            </div>
+            <div class="gp-r">
+                <label>Bıçak Uzunluğu</label>
+                <input type="number" class="lp-inp gp-print-inp" data-param="w" value="${wVal}" step="1" min="10" max="500" style="width:80px;">
+            </div>
+            <div class="gp-r">
+                <label>Kabza Uzunluğu</label>
+                <input type="number" class="lp-inp gp-print-inp" data-param="h" value="${hVal}" step="1" min="10" max="500" style="width:80px;">
+            </div>
+            <div class="gp-r">
+                <label>Kalınlık (Et)</label>
+                <input type="number" class="lp-inp gp-print-inp" data-param="t" value="${tVal}" step="0.5" min="1" max="100" style="width:80px;">
+            </div>
+        `;
+
+        const presetSelect = el('printPreset');
+        const inputs = list.querySelectorAll('.gp-print-inp');
+
+        presetSelect.addEventListener('change', function() {
+            let w, h, t;
+            if (this.value === 'std') {
+                w = type === 'karambit' ? 70 : 85;
+                h = type === 'karambit' ? 80 : 95;
+                t = type === 'karambit' ? 8 : 7;
+            } else if (this.value === 'small') {
+                w = type === 'karambit' ? 45 : 55;
+                h = type === 'karambit' ? 55 : 65;
+                t = type === 'karambit' ? 6 : 5;
+            } else if (this.value === 'large') {
+                w = type === 'karambit' ? 100 : 120;
+                h = type === 'karambit' ? 110 : 130;
+                t = type === 'karambit' ? 10 : 9;
+            } else {
+                return;
+            }
+            list.querySelector('[data-param="w"]').value = w;
+            list.querySelector('[data-param="h"]').value = h;
+            list.querySelector('[data-param="t"]').value = t;
+            rebuildGeometry(obj, { w, h, t });
+        });
+
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                presetSelect.value = 'custom';
+                const w = parseFloat(list.querySelector('[data-param="w"]').value) || 20;
+                const h = parseFloat(list.querySelector('[data-param="h"]').value) || 20;
+                const t = parseFloat(list.querySelector('[data-param="t"]').value) || 2;
+                rebuildGeometry(obj, { w, h, t });
+            });
+        });
+        return;
+    }
     
     if (obj.userData.type.startsWith('terrain')) {
         const type = obj.userData.type;
@@ -2537,7 +2705,7 @@ function clearEditHelpers() {
 function refreshOutliner() {
     const out=el('outliner');
     if (!APP.objects.length) { out.innerHTML='<div class="out-empty">Sahne boş</div>'; return; }
-    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️',bridge:'🌉',torch:'🕯️',lantern:'🏮',fence:'🚧',well:'⛲',campfire:'🔥',tent:'⛺',windmill:'⚙️',boat:'⛵',crystal:'💎',pillar:'🏛️',flag:'🚩',gravestone:'🪦',castle:'🏰',lighthouse:'🚨',pine:'🌲',mushroom:'🍄',cannon:'💥',ruins:'🏛️',cabin:'🏚️',portal:'🌀',cactus:'🌵',cloud:'☁️',flower:'🌸',crate:'📦',anvil:'🔨',wagon:'🛒',knight:'🛡️',wizard:'🧙',slime:'🟢',beholder:'👁️',golem:'🪨',road_straight:'🛣️',road_curve:'↪️',road_t_junction:'┫',road_crossroad:'➕',road_bridge:'🌉',terrain:'⛳',terrain_mount:'🏔️',terrain_dunes:'⏳',terrain_canyon:'🧱',terrain_hills:'🍀',terrain_lake:'💧',terrain_volcano:'🌋',terrain_island:'🏝️',terrain_plain:'🌾',terrain_swamp:'🐊',terrain_oasis:'🌴',terrain_fjord:'🗻',terrain_river:'🌊'};
+    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️',bridge:'🌉',torch:'🕯️',lantern:'🏮',fence:'🚧',well:'⛲',campfire:'🔥',tent:'⛺',windmill:'⚙️',boat:'⛵',crystal:'💎',pillar:'🏛️',flag:'🚩',gravestone:'🪦',castle:'🏰',lighthouse:'🚨',pine:'🌲',mushroom:'🍄',cannon:'💥',ruins:'🏛️',cabin:'🏚️',portal:'🌀',cactus:'🌵',cloud:'☁️',flower:'🌸',crate:'📦',anvil:'🔨',wagon:'🛒',knight:'🛡️',wizard:'🧙',slime:'🟢',beholder:'👁️',golem:'🪨',road_straight:'🛣️',road_curve:'↪️',road_t_junction:'┫',road_crossroad:'➕',road_bridge:'🌉',terrain:'⛳',terrain_mount:'🏔️',terrain_dunes:'⏳',terrain_canyon:'🧱',terrain_hills:'🍀',terrain_lake:'💧',terrain_volcano:'🌋',terrain_island:'🏝️',terrain_plain:'🌾',terrain_swamp:'🐊',terrain_oasis:'🌴',terrain_fjord:'🗻',terrain_river:'🌊',karambit:'🔪',kelebek:'🦋'};
     out.innerHTML=APP.objects.map(obj=>{
         const ic=icons[obj.userData.type]||'○';
         const sel=APP.selected?.userData.id===obj.userData.id;

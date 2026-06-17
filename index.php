@@ -289,15 +289,13 @@
                 </div>
             </div>
 
-            <!-- Collapsible: Game Low-Poly -->
+            <!-- Collapsible: Game Chars -->
             <div class="lp-sec">
-                <button class="lp-sec-hdr collapsed" data-sec="game">
-                    <span>OYUN GEOMETRİLERİ (LOW-POLY)</span>
+                <button class="lp-sec-hdr collapsed" data-sec="gameChars">
+                    <span>👤 KARAKTERLER & CANAVARLAR</span>
                     <span class="sec-arrow">▸</span>
                 </button>
-                <div class="lp-sec-body collapsed" id="secGame">
-                    <!-- Sub-category: Karakter & Yapılar -->
-                    <div class="game-subcat-title">🏠 Yapılar & Karakter</div>
+                <div class="lp-sec-body collapsed" id="secGameChars">
                     <div class="shp-grid">
                         <button class="shp" data-s="mannequin" title="Karakter Şablonu"><svg viewBox="0 0 36 36" fill="none" stroke="#f48fb1" stroke-width="1.4"><circle cx="18" cy="8" r="4"/><rect x="12" y="13" width="12" height="12" rx="1"/><line x1="14" y1="25" x2="14" y2="33"/><line x1="22" y1="25" x2="22" y2="33"/></svg>Karakter</button>
                         <button class="shp" data-s="knight" title="Şövalye"><svg viewBox="0 0 36 36" fill="none" stroke="#90caf9" stroke-width="1.4"><rect x="12" y="10" width="12" height="14" rx="1"/><circle cx="18" cy="7" r="3"/><line x1="8" y1="12" x2="12" y2="18"/><line x1="28" y1="12" x2="24" y2="18"/><line x1="14" y1="24" x2="14" y2="32"/><line x1="22" y1="24" x2="22" y2="32"/></svg>Şövalye</button>
@@ -305,6 +303,18 @@
                         <button class="shp" data-s="slime" title="Slime Canavarı"><svg viewBox="0 0 36 36" fill="none" stroke="#a5d6a7" stroke-width="1.4"><path d="M6,26 C6,16 30,16 30,26 Z"/><circle cx="14" cy="22" r="1.5"/><circle cx="22" cy="22" r="1.5"/></svg>Slime</button>
                         <button class="shp" data-s="golem" title="Kaya Golemi"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><rect x="10" y="8" width="16" height="14" rx="2"/><rect x="6" y="10" width="4" height="10"/><rect x="26" y="10" width="4" height="10"/><line x1="13" y1="22" x2="13" y2="30"/><line x1="23" y1="22" x2="23" y2="30"/></svg>Golem</button>
                         <button class="shp" data-s="beholder" title="Göz Canavarı"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><circle cx="18" cy="18" r="8"/><circle cx="18" cy="18" r="3" stroke="#ff3d00"/><line x1="12" y1="10" x2="8" y2="5"/><line x1="24" y1="10" x2="28" y2="5"/><line x1="18" y1="10" x2="18" y2="4"/></svg>Göz Canavarı</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible: Game Builds -->
+            <div class="lp-sec">
+                <button class="lp-sec-hdr collapsed" data-sec="gameBuilds">
+                    <span>🏠 YAPILAR & BİNALAR</span>
+                    <span class="sec-arrow">▸</span>
+                </button>
+                <div class="lp-sec-body collapsed" id="secGameBuilds">
+                    <div class="shp-grid">
                         <button class="shp" data-s="house" title="Düşük Poligonlu Ev"><svg viewBox="0 0 36 36" fill="none" stroke="#ffb74d" stroke-width="1.4"><path d="M6 16 L18 6 L30 16 V28 H6 Z"/><rect x="14" y="18" width="8" height="10"/></svg>Ev</button>
                         <button class="shp" data-s="tower" title="Kale Kulesi"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><path d="M8 30 V12 L11 8 H25 L28 12 V30 Z"/><rect x="14" y="18" width="8" height="12"/><line x1="8" y1="12" x2="28" y2="12"/></svg>Kule</button>
                         <button class="shp" data-s="wall" title="Kapı Girişli Duvar"><svg viewBox="0 0 36 36" fill="none" stroke="#90a4ae" stroke-width="1.4"><rect x="4" y="6" width="28" height="24" rx="1"/><rect x="14" y="14" width="8" height="16"/></svg>Duvar</button>
@@ -319,9 +329,16 @@
                         <button class="shp" data-s="cabin" title="Ahşap Kulübe"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><polygon points="6,16 18,6 30,16"/><rect x="8" y="16" width="20" height="14"/><rect x="15" y="22" width="6" height="8"/></svg>Kulübe</button>
                         <button class="shp" data-s="portal" title="Geçit / Portal"><svg viewBox="0 0 36 36" fill="none" stroke="#9c27b0" stroke-width="1.4"><circle cx="18" cy="18" r="10"/><rect x="8" y="28" width="20" height="4"/><ellipse cx="18" cy="18" rx="6" ry="6" stroke-dasharray="2,2"/></svg>Geçit</button>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Sub-category: Doğa & Çevre -->
-                    <div class="game-subcat-title">🌲 Doğa & Çevre</div>
+            <!-- Collapsible: Game Nature -->
+            <div class="lp-sec">
+                <button class="lp-sec-hdr collapsed" data-sec="gameNature">
+                    <span>🌲 DOĞA & ÇEVRE</span>
+                    <span class="sec-arrow">▸</span>
+                </button>
+                <div class="lp-sec-body collapsed" id="secGameNature">
                     <div class="shp-grid">
                         <button class="shp" data-s="tree" title="Yapraklı Ağaç"><svg viewBox="0 0 36 36" fill="none" stroke="#81c784" stroke-width="1.4"><path d="M18 4L28 20H8Z"/><path d="M18 10L26 24H10Z"/><rect x="16" y="24" width="4" height="8" rx="1"/></svg>Meşe Ağacı</button>
                         <button class="shp" data-s="pine" title="Çam Ağacı"><svg viewBox="0 0 36 36" fill="none" stroke="#2e7d32" stroke-width="1.4"><polygon points="18,4 28,14 8,14"/><polygon points="18,10 26,20 10,20"/><polygon points="18,16 24,26 12,26"/><rect x="16" y="26" width="4" height="6"/></svg>Çam Ağacı</button>
@@ -333,9 +350,16 @@
                         <button class="shp" data-s="cloud" title="Bulut"><svg viewBox="0 0 36 36" fill="none" stroke="#ffffff" stroke-width="1.4"><path d="M10 24 A 6 6 0 0 1 14 12 A 8 8 0 0 1 28 16 A 6 6 0 0 1 26 24 Z"/></svg>Bulut</button>
                         <button class="shp" data-s="flower" title="Çiçek"><svg viewBox="0 0 36 36" fill="none" stroke="#f48fb1" stroke-width="1.4"><circle cx="18" cy="18" r="4" stroke="#ffeb3b"/><path d="M18 22 V32"/><circle cx="18" cy="10" r="4"/><circle cx="10" cy="18" r="4"/><circle cx="26" cy="18" r="4"/><circle cx="18" cy="26" r="4"/></svg>Çiçek</button>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Sub-category: Eşyalar & Savaş -->
-                    <div class="game-subcat-title">🛡️ Eşyalar & Savaş</div>
+            <!-- Collapsible: Game Props -->
+            <div class="lp-sec">
+                <button class="lp-sec-hdr collapsed" data-sec="gameProps">
+                    <span>🛡️ EŞYALAR & SAVAŞ</span>
+                    <span class="sec-arrow">▸</span>
+                </button>
+                <div class="lp-sec-body collapsed" id="secGameProps">
                     <div class="shp-grid">
                         <button class="shp" data-s="sword" title="Düşük Poligonlu Kılıç"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M18 4 L21 8 V24 L18 26 L15 24 V8 Z"/><line x1="10" y1="26" x2="26" y2="26"/><rect x="17" y="26" width="2" height="6" rx="0.5"/></svg>Kılıç</button>
                         <button class="shp" data-s="shield" title="Düşük Poligonlu Kalkan"><svg viewBox="0 0 36 36" fill="none" stroke="#90caf9" stroke-width="1.4"><path d="M18 6 C10 6 8 10 8 18 C8 26 14 30 18 32 C22 30 28 26 28 18 C28 10 26 6 18 6 Z"/><circle cx="18" cy="18" r="3"/></svg>Kalkan</button>
@@ -352,6 +376,23 @@
                         <button class="shp" data-s="crate" title="Ahşap Kasa"><svg viewBox="0 0 36 36" fill="none" stroke="#d7ccc8" stroke-width="1.4"><rect x="6" y="6" width="24" height="24" rx="1"/><line x1="6" y1="6" x2="30" y2="30"/><line x1="6" y1="30" x2="30" y2="6"/></svg>Kasa</button>
                         <button class="shp" data-s="anvil" title="Örs"><svg viewBox="0 0 36 36" fill="none" stroke="#424242" stroke-width="1.4"><path d="M6 10 H30 L26 18 H10 Z M10 26 H26 V18 H10 Z"/></svg>Örs</button>
                         <button class="shp" data-s="wagon" title="At Arabası/Vagon"><svg viewBox="0 0 36 36" fill="none" stroke="#8d6e63" stroke-width="1.4"><rect x="6" y="10" width="24" height="12"/><circle cx="10" cy="26" r="4"/><circle cx="26" cy="26" r="4"/><line x1="4" y1="14" x2="6" y2="14"/></svg>Vagon</button>
+                    </div>
+                </div>
+            </div>-s="wagon" title="At Arabası/Vagon"><svg viewBox="0 0 36 36" fill="none" stroke="#8d6e63" stroke-width="1.4"><rect x="6" y="10" width="24" height="12"/><circle cx="10" cy="26" r="4"/><circle cx="26" cy="26" r="4"/><line x1="4" y1="14" x2="6" y2="14"/></svg>Vagon</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible: 3D Yazıcı Modelleri -->
+            <div class="lp-sec">
+                <button class="lp-sec-hdr collapsed" data-sec="printer">
+                    <span>3D YAZICI MODELLERİ (PRINT)</span>
+                    <span class="sec-arrow">▸</span>
+                </button>
+                <div class="lp-sec-body collapsed" id="secPrinter">
+                    <div class="shp-grid">
+                        <button class="shp" data-s="karambit" title="Karambit Bıçağı"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M6 30 C12 30 20 28 24 20 C28 12 30 4 30 4 C30 4 22 10 16 14 C10 18 6 22 6 22"/><circle cx="8" cy="28" r="3"/></svg>Karambit</button>
+                        <button class="shp" data-s="kelebek" title="Kelebek Bıçağı"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><rect x="15" y="4" width="6" height="18" rx="1"/><rect x="11" y="22" width="4" height="10" rx="0.5"/><rect x="21" y="22" width="4" height="10" rx="0.5"/></svg>Kelebek</button>
                     </div>
                 </div>
             </div>
