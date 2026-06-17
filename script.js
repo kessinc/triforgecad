@@ -220,6 +220,16 @@ const SHAPE_INFO = {
     shield:   { label:'Kalkan',   color:0x90caf9 },
     chest:    { label:'Sandık',   color:0xa1887f },
     barrel:   { label:'Varil',    color:0xd7ccc8 },
+    bridge:   { label:'Köprü',    color:0xa1887f },
+    torch:    { label:'Meşale',   color:0xff8a80 },
+    lantern:  { label:'Fener',    color:0xffd54f },
+    terrain_mount:{ label:'Dağlar', color:0xa1887f },
+    terrain_dunes:{ label:'Kumul',  color:0xffe082 },
+    terrain_canyon:{ label:'Kanyon',color:0xffab91 },
+    terrain_hills:{ label:'Tepelik',color:0xc5e1a5 },
+    terrain_lake: { label:'Göl',    color:0x80deea },
+    terrain_volcano:{ label:'Volkan',color:0xff8a80 },
+    terrain_island:{ label:'Ada',   color:0x80cbc4 },
 };
 
 function buildGeo(type, p = {}) {
@@ -416,6 +426,159 @@ function buildGeo(type, p = {}) {
             hoop2.translate(0, s*0.2, 0);
             const merged = mergeBufferGeometries([body, hoop1, hoop2]);
             return { geo: merged || body, params: {} };
+        }
+        case 'bridge': {
+            const deck = new THREE.BoxGeometry(s*1.4, s*0.06, s*0.5);
+            deck.translate(0, s*0.2, 0);
+            const rail1 = new THREE.BoxGeometry(s*1.4, s*0.04, s*0.04);
+            rail1.translate(0, s*0.35, s*0.23);
+            const rail2 = new THREE.BoxGeometry(s*1.4, s*0.04, s*0.04);
+            rail2.translate(0, s*0.35, -s*0.23);
+            
+            const supports = [];
+            for (let i = 0; i < 4; i++) {
+                const xOffset = -s*0.6 + i * s*0.4;
+                const sup1 = new THREE.BoxGeometry(s*0.04, s*0.2, s*0.04);
+                sup1.translate(xOffset, s*0.1, s*0.23);
+                const sup2 = new THREE.BoxGeometry(s*0.04, s*0.2, s*0.04);
+                sup2.translate(xOffset, s*0.1, -s*0.23);
+                supports.push(sup1, sup2);
+            }
+            
+            const merged = mergeBufferGeometries([deck, rail1, rail2, ...supports]);
+            return { geo: merged || deck, params: {} };
+        }
+        case 'torch': {
+            const stick = new THREE.CylinderGeometry(s*0.03, s*0.02, s*0.5, 6);
+            stick.rotateZ(-Math.PI/12);
+            stick.translate(0, s*0.2, 0);
+            const flame = new THREE.ConeGeometry(s*0.07, s*0.15, 6);
+            flame.translate(s*0.05, s*0.45, 0);
+            const merged = mergeBufferGeometries([stick, flame]);
+            return { geo: merged || stick, params: {} };
+        }
+        case 'lantern': {
+            const pole = new THREE.CylinderGeometry(s*0.02, s*0.03, s*1.0, 8);
+            pole.translate(0, s*0.5, 0);
+            const arm = new THREE.BoxGeometry(s*0.2, s*0.04, s*0.04);
+            arm.translate(s*0.08, s*0.95, 0);
+            const bulb = new THREE.BoxGeometry(s*0.1, s*0.15, s*0.1);
+            bulb.translate(s*0.15, s*0.85, 0);
+            const merged = mergeBufferGeometries([pole, arm, bulb]);
+            return { geo: merged || pole, params: {} };
+        }
+        case 'terrain_mount': {
+            const w = s * 3, d = s * 3, seg = 32;
+            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
+            geo.rotateX(-Math.PI/2);
+            const pos = geo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const vx = pos.getX(i);
+                const vz = pos.getZ(i);
+                const y = Math.sin(vx * 0.08) * Math.cos(vz * 0.08) * 12 + 
+                          Math.sin(vx * 0.2) * Math.cos(vz * 0.2) * 3 + 
+                          Math.abs(Math.sin(vx * 0.02)) * 8;
+                pos.setY(i, y);
+            }
+            geo.computeVertexNormals();
+            return { geo, params: {} };
+        }
+        case 'terrain_dunes': {
+            const w = s * 3, d = s * 3, seg = 32;
+            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
+            geo.rotateX(-Math.PI/2);
+            const pos = geo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const vx = pos.getX(i);
+                const vz = pos.getZ(i);
+                const y = Math.sin(vx * 0.04 + vz * 0.02) * 4.5 + Math.sin(vx * 0.08) * 1.2;
+                pos.setY(i, y);
+            }
+            geo.computeVertexNormals();
+            return { geo, params: {} };
+        }
+        case 'terrain_canyon': {
+            const w = s * 3, d = s * 3, seg = 32;
+            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
+            geo.rotateX(-Math.PI/2);
+            const pos = geo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const vx = pos.getX(i);
+                const vz = pos.getZ(i);
+                const dist = Math.abs(vz);
+                const canyonBase = dist < s * 0.35 ? -6 : (dist - s * 0.35) * 1.6;
+                const noise = Math.sin(vx * 0.12) * Math.cos(vz * 0.12) * 2;
+                pos.setY(i, Math.min(14, canyonBase + noise));
+            }
+            geo.computeVertexNormals();
+            return { geo, params: {} };
+        }
+        case 'terrain_hills': {
+            const w = s * 3, d = s * 3, seg = 32;
+            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
+            geo.rotateX(-Math.PI/2);
+            const pos = geo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const vx = pos.getX(i);
+                const vz = pos.getZ(i);
+                const y = Math.sin(vx * 0.035) * 5 + Math.cos(vz * 0.035) * 5;
+                pos.setY(i, y);
+            }
+            geo.computeVertexNormals();
+            return { geo, params: {} };
+        }
+        case 'terrain_lake': {
+            const w = s * 3, d = s * 3, seg = 32;
+            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
+            geo.rotateX(-Math.PI/2);
+            const pos = geo.attributes.position;
+            const maxDist = w / 2;
+            for (let i = 0; i < pos.count; i++) {
+                const vx = pos.getX(i);
+                const vz = pos.getZ(i);
+                const dist = Math.sqrt(vx*vx + vz*vz);
+                const y = dist < maxDist * 0.5 ? -8 + (dist / (maxDist * 0.5)) * 4 : -4 + (dist - maxDist * 0.5) * 0.3;
+                pos.setY(i, y);
+            }
+            geo.computeVertexNormals();
+            return { geo, params: {} };
+        }
+        case 'terrain_volcano': {
+            const w = s * 3, d = s * 3, seg = 32;
+            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
+            geo.rotateX(-Math.PI/2);
+            const pos = geo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const vx = pos.getX(i);
+                const vz = pos.getZ(i);
+                const dist = Math.sqrt(vx*vx + vz*vz);
+                let y = 0;
+                if (dist < s * 0.2) {
+                    y = s * 0.7 - (s * 0.2 - dist) * 2.2;
+                } else {
+                    y = Math.max(-1, s * 0.7 - (dist - s * 0.2) * 1.1);
+                }
+                const noise = Math.sin(vx * 0.1) * 1.5;
+                pos.setY(i, y + noise);
+            }
+            geo.computeVertexNormals();
+            return { geo, params: {} };
+        }
+        case 'terrain_island': {
+            const w = s * 3, d = s * 3, seg = 32;
+            const geo = new THREE.PlaneGeometry(w, d, seg, seg);
+            geo.rotateX(-Math.PI/2);
+            const pos = geo.attributes.position;
+            const maxDist = w / 2;
+            for (let i = 0; i < pos.count; i++) {
+                const vx = pos.getX(i);
+                const vz = pos.getZ(i);
+                const dist = Math.sqrt(vx*vx + vz*vz);
+                const y = Math.max(-2, (1 - dist / maxDist) * 13 + Math.sin(vx * 0.08) * 1.5);
+                pos.setY(i, y);
+            }
+            geo.computeVertexNormals();
+            return { geo, params: {} };
         }
         default:
             return { geo: new THREE.BoxGeometry(s,s,s), params:{ w:s, h:s, d:s } };

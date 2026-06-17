@@ -293,7 +293,7 @@
                     <div class="shp-grid">
                         <button class="shp" data-s="mannequin" title="Karakter Şablonu"><svg viewBox="0 0 36 36" fill="none" stroke="#f48fb1" stroke-width="1.4"><circle cx="18" cy="8" r="4"/><rect x="12" y="13" width="12" height="12" rx="1"/><line x1="14" y1="25" x2="14" y2="33"/><line x1="22" y1="25" x2="22" y2="33"/></svg>Karakter</button>
                         <button class="shp" data-s="tree" title="Düşük Poligonlu Ağaç"><svg viewBox="0 0 36 36" fill="none" stroke="#81c784" stroke-width="1.4"><path d="M18 4L28 20H8Z"/><path d="M18 10L26 24H10Z"/><rect x="16" y="24" width="4" height="8" rx="1"/></svg>Ağaç</button>
-                        <button class="shp" data-s="terrain" title="Engebeli Arazi Zemin"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><path d="M4 22 Q12 10 18 18 Q24 26 32 14 L32 30 L4 30 Z"/></svg>Arazi</button>
+                        <button class="shp" data-s="bridge" title="Ahşap Köprü"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><path d="M4 22 H32 M4 26 H32"/><line x1="8" y1="22" x2="8" y2="30"/><line x1="18" y1="22" x2="18" y2="30"/><line x1="28" y1="22" x2="28" y2="30"/></svg>Köprü</button>
                         <button class="shp" data-s="stairs" title="Merdiven"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M6 30H10V26H16V20H22V14H28V8H32"/></svg>Merdiven</button>
                         <button class="shp" data-s="wall" title="Kapı Girişli Duvar"><svg viewBox="0 0 36 36" fill="none" stroke="#90a4ae" stroke-width="1.4"><rect x="4" y="6" width="28" height="24" rx="1"/><rect x="14" y="14" width="8" height="16"/></svg>Duvar</button>
                         <button class="shp" data-s="house" title="Düşük Poligonlu Ev"><svg viewBox="0 0 36 36" fill="none" stroke="#ffb74d" stroke-width="1.4"><path d="M6 16 L18 6 L30 16 V28 H6 Z"/><rect x="14" y="18" width="8" height="10"/></svg>Ev</button>
@@ -303,6 +303,27 @@
                         <button class="shp" data-s="shield" title="Düşük Poligonlu Kalkan"><svg viewBox="0 0 36 36" fill="none" stroke="#90caf9" stroke-width="1.4"><path d="M18 6 C10 6 8 10 8 18 C8 26 14 30 18 32 C22 30 28 26 28 18 C28 10 26 6 18 6 Z"/><circle cx="18" cy="18" r="3"/></svg>Kalkan</button>
                         <button class="shp" data-s="chest" title="Düşük Poligonlu Sandık"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><rect x="6" y="14" width="24" height="16" rx="1"/><path d="M6 14 H30"/><rect x="16" y="12" width="4" height="4"/></svg>Sandık</button>
                         <button class="shp" data-s="barrel" title="Düşük Poligonlu Varil"><svg viewBox="0 0 36 36" fill="none" stroke="#d7ccc8" stroke-width="1.4"><ellipse cx="18" cy="8" rx="8" ry="3"/><ellipse cx="18" cy="28" rx="8" ry="3"/><line x1="10" y1="8" x2="10" y2="28"/><line x1="26" y1="8" x2="26" y2="28"/></svg>Varil</button>
+                        <button class="shp" data-s="torch" title="Duvar Meşalesi"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><path d="M16 26 L18 14 L20 26 Z"/><path d="M16 14 Q18 8 20 14" stroke="#ff3d00" stroke-width="2"/></svg>Meşale</button>
+                        <button class="shp" data-s="lantern" title="Sokak Feneri"><svg viewBox="0 0 36 36" fill="none" stroke="#ffd54f" stroke-width="1.4"><path d="M14 8 H22 L24 20 H12 Z"/><line x1="18" y1="20" x2="18" y2="30"/></svg>Fener</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible: Terrains & Environments -->
+            <div class="lp-sec">
+                <button class="lp-sec-hdr collapsed" data-sec="terrain">
+                    <span>ARAZİLER VE ORTAMLAR</span>
+                    <span class="sec-arrow">▸</span>
+                </button>
+                <div class="lp-sec-body collapsed" id="secTerrain">
+                    <div class="shp-grid">
+                        <button class="shp" data-s="terrain_mount" title="Dağlık Arazi"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><path d="M4 28 L14 12 L20 20 L28 10 L32 28 Z"/></svg>Dağlar</button>
+                        <button class="shp" data-s="terrain_dunes" title="Kum Tepeleri"><svg viewBox="0 0 36 36" fill="none" stroke="#ffe082" stroke-width="1.4"><path d="M4 24 Q10 16 18 22 Q26 28 32 20 L32 30 L4 30 Z"/></svg>Kumul</button>
+                        <button class="shp" data-s="terrain_canyon" title="Kanyon"><svg viewBox="0 0 36 36" fill="none" stroke="#ffab91" stroke-width="1.4"><path d="M4 14 H10 V24 L14 26 H22 L26 24 V14 H32 V30 H4 Z"/></svg>Kanyon</button>
+                        <button class="shp" data-s="terrain_hills" title="Tepelik Arazi"><svg viewBox="0 0 36 36" fill="none" stroke="#c5e1a5" stroke-width="1.4"><path d="M4 26 Q12 18 20 22 Q28 26 32 18 L32 30 L4 30 Z"/></svg>Tepelik</button>
+                        <button class="shp" data-s="terrain_lake" title="Göl / Havza"><svg viewBox="0 0 36 36" fill="none" stroke="#80deea" stroke-width="1.4"><path d="M4 22 Q12 28 18 28 Q24 28 32 22 L32 30 L4 30 Z"/></svg>Göl</button>
+                        <button class="shp" data-s="terrain_volcano" title="Volkan / Krater"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><path d="M4 28 L14 16 H22 L32 28 Z"/><path d="M14 16 Q18 20 22 16" stroke-dasharray="2,2"/></svg>Volkan</button>
+                        <button class="shp" data-s="terrain_island" title="Ada Zemin"><svg viewBox="0 0 36 36" fill="none" stroke="#80cbc4" stroke-width="1.4"><ellipse cx="18" cy="22" rx="8" ry="4"/><line x1="4" y1="26" x2="32" y2="26"/></svg>Ada</button>
                     </div>
                 </div>
             </div>
