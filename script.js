@@ -2837,11 +2837,11 @@ function bindAll() {
     el('mbOBJ').addEventListener('click', exportOBJ);
 
     // Save modal
-    el('mSaveOk').addEventListener('click', saveProject);
-    el('mSaveLocal').addEventListener('click', saveProjectLocal);
-    el('mSaveCancel').addEventListener('click', () => el('saveModal').style.display='none');
-    el('mSaveClose').addEventListener('click', () => el('saveModal').style.display='none');
-    el('mSaveName').addEventListener('keydown', e => { if(e.key==='Enter') saveProject(); });
+    el('mSaveOk')?.addEventListener('click', quickSave);
+    el('mSaveLocal')?.addEventListener('click', saveProjectAs);
+    el('mSaveCancel')?.addEventListener('click', () => el('saveModal').style.display='none');
+    el('mSaveClose')?.addEventListener('click', () => el('saveModal').style.display='none');
+    el('mSaveName')?.addEventListener('keydown', e => { if(e.key==='Enter') quickSave(); });
 
     // Text modal
     el('mTextClose').addEventListener('click', () => el('textModal').style.display='none');
