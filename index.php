@@ -80,6 +80,10 @@
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     Edit
                 </button>
+                <button class="mb-btn mode-btn" id="mbModePaint" title="Boyama Modu">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 11.5 21 9 18 9C15 9 14 11 12 11C10 11 9 9 9 7C9 4 11.5 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/></svg>
+                    Boyama
+                </button>
                 <button class="mb-btn mode-btn" id="mbModeSketch" title="Çizim Modu Ctrl+K">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
                     Çizim
@@ -296,6 +300,11 @@
                     <div class="game-subcat-title">🏠 Yapılar & Karakter</div>
                     <div class="shp-grid">
                         <button class="shp" data-s="mannequin" title="Karakter Şablonu"><svg viewBox="0 0 36 36" fill="none" stroke="#f48fb1" stroke-width="1.4"><circle cx="18" cy="8" r="4"/><rect x="12" y="13" width="12" height="12" rx="1"/><line x1="14" y1="25" x2="14" y2="33"/><line x1="22" y1="25" x2="22" y2="33"/></svg>Karakter</button>
+                        <button class="shp" data-s="knight" title="Şövalye"><svg viewBox="0 0 36 36" fill="none" stroke="#90caf9" stroke-width="1.4"><rect x="12" y="10" width="12" height="14" rx="1"/><circle cx="18" cy="7" r="3"/><line x1="8" y1="12" x2="12" y2="18"/><line x1="28" y1="12" x2="24" y2="18"/><line x1="14" y1="24" x2="14" y2="32"/><line x1="22" y1="24" x2="22" y2="32"/></svg>Şövalye</button>
+                        <button class="shp" data-s="wizard" title="Büyücü"><svg viewBox="0 0 36 36" fill="none" stroke="#b39ddb" stroke-width="1.4"><polygon points="18,4 26,14 10,14"/><circle cx="18" cy="18" r="4"/><path d="M12,22 L8,32 M24,22 L28,32"/></svg>Büyücü</button>
+                        <button class="shp" data-s="slime" title="Slime Canavarı"><svg viewBox="0 0 36 36" fill="none" stroke="#a5d6a7" stroke-width="1.4"><path d="M6,26 C6,16 30,16 30,26 Z"/><circle cx="14" cy="22" r="1.5"/><circle cx="22" cy="22" r="1.5"/></svg>Slime</button>
+                        <button class="shp" data-s="golem" title="Kaya Golemi"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><rect x="10" y="8" width="16" height="14" rx="2"/><rect x="6" y="10" width="4" height="10"/><rect x="26" y="10" width="4" height="10"/><line x1="13" y1="22" x2="13" y2="30"/><line x1="23" y1="22" x2="23" y2="30"/></svg>Golem</button>
+                        <button class="shp" data-s="beholder" title="Göz Canavarı"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><circle cx="18" cy="18" r="8"/><circle cx="18" cy="18" r="3" stroke="#ff3d00"/><line x1="12" y1="10" x2="8" y2="5"/><line x1="24" y1="10" x2="28" y2="5"/><line x1="18" y1="10" x2="18" y2="4"/></svg>Göz Canavarı</button>
                         <button class="shp" data-s="house" title="Düşük Poligonlu Ev"><svg viewBox="0 0 36 36" fill="none" stroke="#ffb74d" stroke-width="1.4"><path d="M6 16 L18 6 L30 16 V28 H6 Z"/><rect x="14" y="18" width="8" height="10"/></svg>Ev</button>
                         <button class="shp" data-s="tower" title="Kale Kulesi"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><path d="M8 30 V12 L11 8 H25 L28 12 V30 Z"/><rect x="14" y="18" width="8" height="12"/><line x1="8" y1="12" x2="28" y2="12"/></svg>Kule</button>
                         <button class="shp" data-s="wall" title="Kapı Girişli Duvar"><svg viewBox="0 0 36 36" fill="none" stroke="#90a4ae" stroke-width="1.4"><rect x="4" y="6" width="28" height="24" rx="1"/><rect x="14" y="14" width="8" height="16"/></svg>Duvar</button>
@@ -972,6 +981,19 @@
                             <div class="msw" data-c="#004d40" style="background:#004d40" title="Koyu Yeşil"></div>
                             <div class="msw" data-c="#f5f5dc" style="background:#f5f5dc" title="Bej"></div>
                             <div class="msw" data-c="#212121" style="background:#212121" title="Siyah"></div>
+                            <!-- 12 New Premium Colors -->
+                            <div class="msw" data-c="#00e5ff" style="background:#00e5ff" title="Turkuaz"></div>
+                            <div class="msw" data-c="#f48fb1" style="background:#f48fb1" title="Pembe"></div>
+                            <div class="msw" data-c="#ff8a80" style="background:#ff8a80" title="Mercan"></div>
+                            <div class="msw" data-c="#008080" style="background:#008080" title="Camgöbeği"></div>
+                            <div class="msw" data-c="#aeea00" style="background:#aeea00" title="Limon Yeşili"></div>
+                            <div class="msw" data-c="#2e7d32" style="background:#2e7d32" title="Orman Yeşili"></div>
+                            <div class="msw" data-c="#dfb15b" style="background:#dfb15b" title="Altın Kum"></div>
+                            <div class="msw" data-c="#5d4037" style="background:#5d4037" title="Kahverengi"></div>
+                            <div class="msw" data-c="#c0c0c0" style="background:#c0c0c0" title="Gümüş"></div>
+                            <div class="msw" data-c="#80d8ff" style="background:#80d8ff" title="Açık Mavi"></div>
+                            <div class="msw" data-c="#3f51b5" style="background:#3f51b5" title="Çivit Mavisi"></div>
+                            <div class="msw" data-c="#d1c4e9" style="background:#d1c4e9" title="Eflatun"></div>
                         </div>
                     </div>
                     <button class="lp-apply-btn lp-red" id="clearPaintBtn" style="display:none; margin-top:8px;">🎨 Boyamayı Temizle (Sıfırla)</button>
@@ -1093,6 +1115,20 @@
             <button class="mb2 mb-sec" id="mSaveCancel">İptal</button>
             <button class="mb2 mb-local" id="mSaveLocal" style="background:var(--blu2);border-color:var(--blu);color:white">Cihaza Kaydet</button>
             <button class="mb2 mb-ok" id="mSaveOk">Sunucuya Kaydet</button>
+        </div>
+    </div>
+</div>
+
+<div id="saveAsModal" class="modal-bg" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-hdr"><h3>💾 Farklı Kaydet (Cihaza İndir)</h3><button class="modal-cls" id="mSaveAsClose">✕</button></div>
+        <div class="modal-body">
+            <div class="mf-row"><label>Dosya Adı</label><input type="text" id="saveAsFilename" class="mf-inp" value="Tasarim" placeholder="Dosya adı girin..."></div>
+            <div class="mf-info">📁 Dosya tarayıcının varsayılan "İndirilenler" klasörüne kaydedilecektir.</div>
+        </div>
+        <div class="modal-foot">
+            <button class="mb2 mb-sec" id="mSaveAsCancel">İptal</button>
+            <button class="mb2 mb-ok" id="saveAsConfirmBtn">Kaydet</button>
         </div>
     </div>
 </div>

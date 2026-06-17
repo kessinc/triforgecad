@@ -248,6 +248,11 @@ const SHAPE_INFO = {
     crate:     { label:'Kasa',     color:0xd7ccc8 },
     anvil:     { label:'Örs',      color:0x424242 },
     wagon:     { label:'Vagon',    color:0x8d6e63 },
+    knight:   { label:'Şövalye',  color:0x90caf9 },
+    wizard:   { label:'Büyücü',   color:0xb39ddb },
+    slime:    { label:'Slime',    color:0xa5d6a7 },
+    beholder: { label:'Göz Canavarı', color:0xff8a80 },
+    golem:    { label:'Kaya Golemi', color:0xb0bec5 },
     road_straight: { label:'Düz Yol', color:0x333333 },
     road_curve:    { label:'Virajlı Yol', color:0x333333 },
     road_t_junction:{ label:'T-Kavşak', color:0x333333 },
@@ -530,12 +535,70 @@ function buildGeo(type, p = {}) {
         case 'windmill': {
             const base = new THREE.CylinderGeometry(s*0.16, s*0.3, s, 8); base.translate(0, s/2, 0);
             const cap = new THREE.SphereGeometry(s*0.14, 8, 8); cap.translate(0, s, 0);
-            const blade1 = new THREE.BoxGeometry(s*0.8, s/12, s/100); blade1.translate(s*0.4, s, s*0.12);
-            const blade2 = blade1.clone().rotateZ(Math.PI/2);
-            const blade3 = blade1.clone().rotateZ(Math.PI);
-            const blade4 = blade1.clone().rotateZ(-Math.PI/2);
-            const merged = mergeBufferGeometries([base, cap, blade1, blade2, blade3, blade4]);
+            
+            // Fixed blades math: rotate around local origin first, then translate to pivot
+            const blade = new THREE.BoxGeometry(s*0.4, s/12, s/100); blade.translate(s*0.2, 0, 0);
+            const b1 = blade.clone();
+            const b2 = blade.clone().rotateZ(Math.PI/2);
+            const b3 = blade.clone().rotateZ(Math.PI);
+            const b4 = blade.clone().rotateZ(-Math.PI/2);
+            const propeller = mergeBufferGeometries([b1, b2, b3, b4]);
+            propeller.translate(0, s, s*0.14);
+            
+            const merged = mergeBufferGeometries([base, cap, propeller]);
             return { geo: merged || base, params: {} };
+        }
+        case 'knight': {
+            const body = new THREE.BoxGeometry(s*0.28, s*0.4, s*0.2); body.translate(0, s*0.35, 0);
+            const head = new THREE.BoxGeometry(s*0.18, s*0.18, s*0.18); head.translate(0, s*0.62, 0);
+            const helmet = new THREE.ConeGeometry(s*0.11, s*0.12, 4); helmet.rotateY(Math.PI/4); helmet.translate(0, s*0.75, 0);
+            const lLeg = new THREE.BoxGeometry(s*0.08, s*0.2, s*0.08); lLeg.translate(-s*0.08, s*0.1, 0);
+            const rLeg = new THREE.BoxGeometry(s*0.08, s*0.2, s*0.08); rLeg.translate(s*0.08, s*0.1, 0);
+            const shield = new THREE.BoxGeometry(s*0.02, s*0.3, s*0.2); shield.translate(-s*0.16, s*0.35, s*0.05);
+            const weapon = new THREE.BoxGeometry(s*0.04, s*0.4, s*0.04); weapon.translate(s*0.16, s*0.45, s*0.1);
+            const merged = mergeBufferGeometries([body, head, helmet, lLeg, rLeg, shield, weapon]);
+            return { geo: merged || body, params: {} };
+        }
+        case 'wizard': {
+            const robe = new THREE.ConeGeometry(s*0.24, s*0.6, 6); robe.translate(0, s*0.3, 0);
+            const head = new THREE.SphereGeometry(s*0.11, 8, 8); head.translate(0, s*0.65, 0);
+            const hat = new THREE.ConeGeometry(s*0.16, s*0.35, 6); hat.translate(0, s*0.88, 0);
+            const staff = new THREE.CylinderGeometry(s*0.02, s*0.02, s*0.8, 6); staff.translate(s*0.18, s*0.4, s*0.08);
+            const staffGem = new THREE.SphereGeometry(s*0.05, 4, 4); staffGem.translate(s*0.18, s*0.82, s*0.08);
+            const merged = mergeBufferGeometries([robe, head, hat, staff, staffGem]);
+            return { geo: merged || robe, params: {} };
+        }
+        case 'slime': {
+            const body = new THREE.SphereGeometry(s*0.24, 8, 8); body.scale(1.0, 0.7, 1.0); body.translate(0, s*0.15, 0);
+            const eyeL = new THREE.BoxGeometry(s*0.04, s*0.04, s*0.04); eyeL.translate(-s*0.08, s*0.18, s*0.18);
+            const eyeR = new THREE.BoxGeometry(s*0.04, s*0.04, s*0.04); eyeR.translate(s*0.08, s*0.18, s*0.18);
+            const horn = new THREE.ConeGeometry(s*0.05, s*0.14, 4); horn.translate(0, s*0.3, 0);
+            const merged = mergeBufferGeometries([body, eyeL, eyeR, horn]);
+            return { geo: merged || body, params: {} };
+        }
+        case 'golem': {
+            const body = new THREE.BoxGeometry(s*0.45, s*0.3, s*0.3); body.translate(0, s*0.45, 0);
+            const shoulderL = new THREE.BoxGeometry(s*0.18, s*0.18, s*0.18); shoulderL.translate(-s*0.28, s*0.48, 0);
+            const shoulderR = new THREE.BoxGeometry(s*0.18, s*0.18, s*0.18); shoulderR.translate(s*0.28, s*0.48, 0);
+            const armL = new THREE.BoxGeometry(s*0.12, s*0.35, s*0.12); armL.translate(-s*0.28, s*0.28, s*0.08);
+            const armR = new THREE.BoxGeometry(s*0.12, s*0.35, s*0.12); armR.translate(s*0.28, s*0.28, s*0.08);
+            const head = new THREE.BoxGeometry(s*0.14, s*0.14, s*0.14); head.translate(0, s*0.58, s*0.05);
+            const lLeg = new THREE.BoxGeometry(s*0.14, s*0.25, s*0.14); lLeg.translate(-s*0.15, s*0.12, 0);
+            const rLeg = new THREE.BoxGeometry(s*0.14, s*0.25, s*0.14); rLeg.translate(s*0.15, s*0.12, 0);
+            const merged = mergeBufferGeometries([body, shoulderL, shoulderR, armL, armR, head, lLeg, rLeg]);
+            return { geo: merged || body, params: {} };
+        }
+        case 'beholder': {
+            const body = new THREE.SphereGeometry(s*0.26, 10, 10); body.translate(0, s*0.45, 0);
+            const mainEye = new THREE.SphereGeometry(s*0.08, 8, 8); mainEye.translate(0, s*0.45, s*0.22);
+            const stalk1 = new THREE.CylinderGeometry(s*0.02, s*0.02, s*0.25, 6); stalk1.translate(-s*0.12, s*0.65, 0);
+            const eye1 = new THREE.SphereGeometry(s*0.04, 6, 6); eye1.translate(-s*0.12, s*0.78, 0);
+            const stalk2 = new THREE.CylinderGeometry(s*0.02, s*0.02, s*0.25, 6); stalk2.translate(s*0.12, s*0.65, 0);
+            const eye2 = new THREE.SphereGeometry(s*0.04, 6, 6); eye2.translate(s*0.12, s*0.78, 0);
+            const stalk3 = new THREE.CylinderGeometry(s*0.02, s*0.02, s*0.25, 6); stalk3.translate(0, s*0.68, -s*0.08);
+            const eye3 = new THREE.SphereGeometry(s*0.04, 6, 6); eye3.translate(0, s*0.81, -s*0.08);
+            const merged = mergeBufferGeometries([body, mainEye, stalk1, eye1, stalk2, eye2, stalk3, eye3]);
+            return { geo: merged || body, params: {} };
         }
         case 'boat': {
             const bottom = new THREE.BoxGeometry(s*0.8, s/10, s*0.4); bottom.translate(0, s/20, 0);
@@ -864,21 +927,24 @@ function generateTerrainHeights(pos, type, s, w, d, heightScale, roughnessScale)
     for (let i = 0; i < pos.count; i++) {
         const vx = pos.getX(i);
         const vz = pos.getZ(i);
+        const x = (vx / w) * 60;
+        const z = (vz / d) * 60;
         const distCenter = Math.sqrt(vx*vx + vz*vz);
         let y = 0;
         
         if (type === 'mount') {
             const centerPeak = Math.max(0, maxDist * 0.4 - distCenter * 0.4);
-            y = (centerPeak * 1.5 + Math.sin(vx * 0.08) * Math.cos(vz * 0.08) * 10 + Math.sin(vx * 0.25) * Math.cos(vz * 0.25) * 2 * roughnessScale) * heightScale;
+            y = (centerPeak * 1.5 + Math.sin(x * 0.08) * Math.cos(z * 0.08) * 10 + Math.sin(x * 0.25) * Math.cos(z * 0.25) * 2 * roughnessScale) * heightScale;
         } else if (type === 'dunes') {
-            const wave = Math.abs(Math.sin(vx * 0.05 + vz * 0.02)) * 5;
-            y = (wave + Math.sin(vx * 0.15) * Math.cos(vz * 0.15) * 0.5 * roughnessScale) * heightScale;
+            // Majestic wind-blown curved desert dunes
+            const wave = Math.sin(x * 0.08 + Math.sin(z * 0.04) * 2) * 4.5;
+            y = (wave + Math.sin(x * 0.15) * Math.cos(z * 0.15) * 0.5 * roughnessScale) * heightScale;
         } else if (type === 'canyon') {
-            const rawHeight = Math.sin(vx * 0.05) * Math.cos(vz * 0.05) * 12;
+            const rawHeight = Math.sin(x * 0.05) * Math.cos(z * 0.05) * 12;
             const stepHeight = Math.floor(rawHeight / 4) * 4;
-            y = (stepHeight + Math.sin(vx * 0.2) * 0.5 * roughnessScale) * heightScale;
+            y = (stepHeight + Math.sin(x * 0.2) * 0.5 * roughnessScale) * heightScale;
         } else if (type === 'hills') {
-            y = (Math.sin(vx * 0.04) * 5 + Math.cos(vz * 0.04) * 5 + Math.sin(vx * 0.12) * Math.cos(vz * 0.12) * 1.0 * roughnessScale) * heightScale;
+            y = (Math.sin(x * 0.04) * 5 + Math.cos(z * 0.04) * 5 + Math.sin(x * 0.12) * Math.cos(z * 0.12) * 1.0 * roughnessScale) * heightScale;
         } else if (type === 'lake') {
             let base = 0;
             if (distCenter < maxDist * 0.6) {
@@ -888,7 +954,7 @@ function generateTerrainHeights(pos, type, s, w, d, heightScale, roughnessScale)
                 const t = (distCenter - maxDist * 0.6) / (maxDist * 0.4);
                 base = -2 + t * 4;
             }
-            y = (base + Math.sin(vx * 0.15) * Math.cos(vz * 0.15) * 0.6 * roughnessScale) * heightScale;
+            y = (base + Math.sin(x * 0.15) * Math.cos(z * 0.15) * 0.6 * roughnessScale) * heightScale;
         } else if (type === 'volcano') {
             const radius = maxDist * 0.35;
             let base = 0;
@@ -897,14 +963,14 @@ function generateTerrainHeights(pos, type, s, w, d, heightScale, roughnessScale)
             } else {
                 base = Math.max(-1, 12 - (distCenter - radius) * 1.4);
             }
-            y = (base + Math.sin(vx * 0.15) * Math.cos(vz * 0.15) * 1.0 * roughnessScale) * heightScale;
+            y = (base + Math.sin(x * 0.15) * Math.cos(z * 0.15) * 1.0 * roughnessScale) * heightScale;
         } else if (type === 'island') {
-            y = Math.max(-2, (1 - distCenter / maxDist) * 13 + Math.sin(vx * 0.08) * Math.cos(vz * 0.08) * 1.5 * roughnessScale) * heightScale;
+            y = Math.max(-2, (1 - distCenter / maxDist) * 13 + Math.sin(x * 0.08) * Math.cos(z * 0.08) * 1.5 * roughnessScale) * heightScale;
         } else if (type === 'plain') {
-            y = (Math.sin(vx * 0.02) * Math.cos(vz * 0.02) * 1.2 + Math.sin(vx * 0.08) * 0.3 * roughnessScale) * heightScale;
+            y = (Math.sin(x * 0.02) * Math.cos(z * 0.02) * 1.2 + Math.sin(x * 0.08) * 0.3 * roughnessScale) * heightScale;
         } else if (type === 'swamp') {
-            const noise1 = Math.sin(vx * 0.08) * Math.cos(vz * 0.08);
-            const noise2 = Math.sin(vx * 0.2) * Math.cos(vz * 0.2) * 0.4 * roughnessScale;
+            const noise1 = Math.sin(x * 0.08) * Math.cos(z * 0.08);
+            const noise2 = Math.sin(x * 0.2) * Math.cos(z * 0.2) * 0.4 * roughnessScale;
             const base = noise1 * 1.5 + noise2;
             y = (base < -0.4 ? -1.0 : base) * heightScale;
         } else if (type === 'oasis') {
@@ -914,11 +980,11 @@ function generateTerrainHeights(pos, type, s, w, d, heightScale, roughnessScale)
                 base = -5 * (1 - t*t) - 1.5;
             } else {
                 const t = (distCenter - maxDist * 0.35) / (maxDist * 0.65);
-                const dunesWave = Math.sin(vx * 0.05 + vz * 0.03) * 3.5;
+                const dunesWave = Math.sin(x * 0.05 + z * 0.03) * 3.5;
                 const ring = Math.sin(t * Math.PI) * 5;
                 base = ring + dunesWave - 1.5;
             }
-            y = (base + Math.sin(vx * 0.2) * 0.4 * roughnessScale) * heightScale;
+            y = (base + Math.sin(x * 0.2) * 0.4 * roughnessScale) * heightScale;
         } else if (type === 'fjord') {
             const distZ = Math.abs(vz);
             const channelW = maxDist * 0.35;
@@ -929,10 +995,10 @@ function generateTerrainHeights(pos, type, s, w, d, heightScale, roughnessScale)
                 const t = (distZ - channelW) / (maxDist - channelW);
                 base = -8 + t * t * 18;
             }
-            const noise = Math.sin(vx * 0.15) * Math.cos(vz * 0.15) * 1.8 * roughnessScale;
+            const noise = Math.sin(x * 0.15) * Math.cos(z * 0.15) * 1.8 * roughnessScale;
             y = (base + noise) * heightScale;
         } else if (type === 'river') {
-            const offset = Math.sin(vx * 0.06) * (maxDist * 0.4);
+            const offset = Math.sin(x * 0.06) * (maxDist * 0.4);
             const distZ = Math.abs(vz - offset);
             const channelW = maxDist * 0.25;
             let base = 0;
@@ -944,10 +1010,10 @@ function generateTerrainHeights(pos, type, s, w, d, heightScale, roughnessScale)
                 base = -2 + t * 5.5;
             }
             const noiseMultiplier = distZ < channelW ? 0.15 : 1.0;
-            const noise = Math.sin(vx * 0.12) * Math.cos(vz * 0.12) * 1.5 * roughnessScale * noiseMultiplier;
+            const noise = Math.sin(x * 0.12) * Math.cos(z * 0.12) * 1.5 * roughnessScale * noiseMultiplier;
             y = (base + noise) * heightScale;
         } else {
-            y = Math.sin(vx * 0.05) * Math.cos(vz * 0.05) * 2 * roughnessScale * heightScale;
+            y = Math.sin(x * 0.05) * Math.cos(z * 0.05) * 2 * roughnessScale * heightScale;
         }
         pos.setY(i, y);
     }
@@ -1013,7 +1079,7 @@ function addObject(type, extraParams = {}) {
     let defaultColor = info.color;
     if (type.startsWith('terrain')) {
         const theme = extraParams.theme || 'grass';
-        const colors = { grass: 0x4caf50, sand: 0xffcc80, snow: 0xf5f5f5, lava: 0x263238, clay: 0xd84315, swamp: 0x33691e, stone: 0x78909c };
+        const colors = { grass: 0x4caf50, sand: 0xdfb15b, snow: 0xf5f5f5, lava: 0x263238, clay: 0xd84315, swamp: 0x33691e, stone: 0x78909c };
         defaultColor = colors[theme] || defaultColor;
     }
     
@@ -1066,7 +1132,7 @@ function rebuildGeometry(mesh, newParams) {
     
     if (mesh.userData.type.startsWith('terrain')) {
         if (newParams.theme) {
-            const colors = { grass: '#4caf50', sand: '#ffcc80', snow: '#f5f5f5', lava: '#263238', clay: '#d84315', swamp: '#33691e', stone: '#78909c' };
+            const colors = { grass: '#4caf50', sand: '#dfb15b', snow: '#f5f5f5', lava: '#263238', clay: '#d84315', swamp: '#33691e', stone: '#78909c' };
             const hex = colors[newParams.theme];
             if (hex) {
                 mesh.material.color.set(hex);
@@ -1428,18 +1494,21 @@ function buildGeoParamsList(obj) {
                 <label>Detay (Seg)</label>
                 <input type="number" class="lp-inp gp-terrain-inp" data-param="seg" value="${segVal}" step="4" min="4" max="256" style="width:100px;">
             </div>
+            <button class="lp-apply-btn lp-green" id="applyTerrainParams" style="margin-top:10px; width:100%;">⛳ Ayarları Uygula ve Kaydet</button>
         `;
         
-        list.querySelectorAll('.gp-terrain-inp').forEach(inp => {
-            inp.addEventListener('change', () => {
+        const btn = el('applyTerrainParams');
+        if (btn) {
+            btn.addEventListener('click', () => {
                 const newParams = {};
                 list.querySelectorAll('.gp-terrain-inp').forEach(i => {
                     const pName = i.dataset.param;
                     newParams[pName] = pName === 'type' || pName === 'theme' ? i.value : parseFloat(i.value) || 0;
                 });
                 rebuildGeometry(obj, newParams);
+                toast('✓ Arazi ayarları kaydedildi ve uygulandı', 'success', 2000);
             });
-        });
+        }
         return;
     }
     
@@ -1534,12 +1603,45 @@ function bindInspectorInputs() {
         rebuildGeometry(APP.selected, p);
         toast('✓ Geometri güncellendi','success',1800);
     });
-    // Material color
-    el('matCol').addEventListener('input', function() { if (APP.selected) APP.selected.material.color.set(this.value); });
-    document.querySelectorAll('.msw').forEach(s => s.addEventListener('click', function() {
+    // Solid color helper
+    function makeSelectedSolidColor(hex) {
         if (!APP.selected) return;
-        APP.selected.material.color.set(this.dataset.c);
-        el('matCol').value = this.dataset.c;
+        const mesh = APP.selected;
+        if (mesh.geometry.attributes.color) {
+            mesh.geometry.deleteAttribute('color');
+            mesh.geometry.attributes.position.needsUpdate = true;
+        }
+        mesh.material.vertexColors = false;
+        mesh.material.color.set(hex);
+        mesh.material.needsUpdate = true;
+        
+        const clearBtn = el('clearPaintBtn');
+        if (clearBtn) clearBtn.style.display = 'none';
+        
+        saveHist('color-solid');
+    }
+    
+    // Color Selection Router
+    function selectColor(hex) {
+        el('matCol').value = hex;
+        if (el('sculptPaintColor')) el('sculptPaintColor').value = hex;
+        
+        const isPaintMode = APP.mode === 'edit' && el('sculptMode')?.value === 'paint';
+        if (isPaintMode) {
+            toast(`🖌️ Fırça rengi seçildi: ${hex}`, 'info', 1000);
+            return;
+        }
+        
+        if (APP.selected) {
+            makeSelectedSolidColor(hex);
+            toast(`🎨 Obje rengi uygulandı`, 'success', 1000);
+        }
+    }
+
+    // Material color
+    el('matCol').addEventListener('input', function() { selectColor(this.value); });
+    document.querySelectorAll('.msw').forEach(s => s.addEventListener('click', function() {
+        selectColor(this.dataset.c);
     }));
     // Mat sliders
     [['matMetal','metalness','vMetal'],['matRough','roughness','vRough'],['matOpac','opacity','vOpac'],['matEmit','emissiveIntensity','vEmit']].forEach(([id,prop,vid]) => {
@@ -1613,6 +1715,9 @@ function duplicateObj(obj) {
         m2.userData.origPosition = new Float32Array(obj.userData.origPosition);
     }
     addWireEdges(m2);
+    if (m2.userData.type && m2.userData.type.startsWith('terrain')) {
+        updateTerrainWater(m2);
+    }
     APP.scene.add(m2); APP.objects.push(m2);
     selectObj(m2); refreshOutliner(); updateStats(); saveHist('dup');
     toast(`⧉ "${m2.userData.name}" kopyalandı`, 'success', 1800);
@@ -2432,7 +2537,7 @@ function clearEditHelpers() {
 function refreshOutliner() {
     const out=el('outliner');
     if (!APP.objects.length) { out.innerHTML='<div class="out-empty">Sahne boş</div>'; return; }
-    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️',bridge:'🌉',torch:'🕯️',lantern:'🏮',fence:'🚧',well:'⛲',campfire:'🔥',tent:'⛺',windmill:'⚙️',boat:'⛵',crystal:'💎',pillar:'🏛️',flag:'🚩',gravestone:'🪦',castle:'🏰',lighthouse:'🚨',pine:'🌲',mushroom:'🍄',cannon:'💥',ruins:'🏛️',cabin:'🏚️',portal:'🌀',cactus:'🌵',cloud:'☁️',flower:'🌸',crate:'📦',anvil:'🔨',wagon:'🛒',road_straight:'🛣️',road_curve:'↪️',road_t_junction:'┫',road_crossroad:'➕',road_bridge:'🌉',terrain:'⛳',terrain_mount:'🏔️',terrain_dunes:'⏳',terrain_canyon:'🧱',terrain_hills:'🍀',terrain_lake:'💧',terrain_volcano:'🌋',terrain_island:'🏝️',terrain_plain:'🌾',terrain_swamp:'🐊',terrain_oasis:'🌴',terrain_fjord:'🗻',terrain_river:'🌊'};
+    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️',bridge:'🌉',torch:'🕯️',lantern:'🏮',fence:'🚧',well:'⛲',campfire:'🔥',tent:'⛺',windmill:'⚙️',boat:'⛵',crystal:'💎',pillar:'🏛️',flag:'🚩',gravestone:'🪦',castle:'🏰',lighthouse:'🚨',pine:'🌲',mushroom:'🍄',cannon:'💥',ruins:'🏛️',cabin:'🏚️',portal:'🌀',cactus:'🌵',cloud:'☁️',flower:'🌸',crate:'📦',anvil:'🔨',wagon:'🛒',knight:'🛡️',wizard:'🧙',slime:'🟢',beholder:'👁️',golem:'🪨',road_straight:'🛣️',road_curve:'↪️',road_t_junction:'┫',road_crossroad:'➕',road_bridge:'🌉',terrain:'⛳',terrain_mount:'🏔️',terrain_dunes:'⏳',terrain_canyon:'🧱',terrain_hills:'🍀',terrain_lake:'💧',terrain_volcano:'🌋',terrain_island:'🏝️',terrain_plain:'🌾',terrain_swamp:'🐊',terrain_oasis:'🌴',terrain_fjord:'🗻',terrain_river:'🌊'};
     out.innerHTML=APP.objects.map(obj=>{
         const ic=icons[obj.userData.type]||'○';
         const sel=APP.selected?.userData.id===obj.userData.id;
@@ -2625,6 +2730,9 @@ function desObj(d) {
             m.userData.origPosition = new Float32Array(d.origPositions);
         }
         addWireEdges(m);
+        if (d.type && d.type.startsWith('terrain')) {
+            updateTerrainWater(m);
+        }
         return m;
     } catch(e) {
         console.error('desObj:', e);
@@ -2720,8 +2828,16 @@ async function saveProjectAs() {
         }
     }
     
-    dlBlob(blob, `Tasarim.json`);
-    toast('✓ Proje indirildi', 'success', 2500);
+    // Custom In-App Save As Fallback Modal
+    el('saveAsFilename').value = APP.fileHandle ? APP.fileHandle.name.replace('.json', '') : 'Tasarim';
+    el('saveAsModal').style.display = 'flex';
+    el('saveAsConfirmBtn').onclick = () => {
+        let name = el('saveAsFilename').value.trim() || 'Tasarim';
+        if (!name.endsWith('.json')) name += '.json';
+        dlBlob(blob, name);
+        el('saveAsModal').style.display = 'none';
+        toast(`✓ "${name}" indirildi`, 'success', 2500);
+    };
 }
 
 async function openProjectLocal() {
@@ -2841,9 +2957,30 @@ function bindAll() {
     el('customSz').addEventListener('change', function() { APP.presetSize=parseFloat(this.value)||20; document.querySelectorAll('.sz-btn').forEach(b=>b.classList.remove('active')); });
 
     // Mode buttons (menubar)
-    el('mbModeObj').addEventListener('click', () => { if (APP.mode==='sketch') exitSketchMode(); if (APP.mode==='edit') exitEditMode(); });
+    el('mbModeObj').addEventListener('click', () => { if (APP.mode==='sketch') exitSketchMode(); if (APP.mode==='edit' || APP.mode==='paint') exitEditMode(); });
     el('mbModeEdit').addEventListener('click', () => { if (APP.mode==='sketch') exitSketchMode(); enterEditMode(); });
-    el('mbModeSketch').addEventListener('click', () => { if (APP.mode==='edit') exitEditMode(); if (APP.mode==='sketch') exitSketchMode(); else enterSketchMode(); });
+    el('mbModeSketch').addEventListener('click', () => { if (APP.mode==='edit' || APP.mode==='paint') exitEditMode(); if (APP.mode==='sketch') exitSketchMode(); else enterSketchMode(); });
+    el('mbModePaint').addEventListener('click', () => {
+        if (!APP.selected) {
+            toast('⚠️ Boyama yapmak için önce sahnede bir obje seçmelisiniz!', 'warning', 2500);
+            return;
+        }
+        if (APP.mode==='sketch') exitSketchMode();
+        enterEditMode();
+        if (el('sculptMode')) {
+            el('sculptMode').value = 'paint';
+            el('sculptMode').dispatchEvent(new Event('change'));
+        }
+        document.querySelectorAll('.mb-btn.mode-btn').forEach(b=>b.classList.remove('active'));
+        el('mbModePaint').classList.add('active');
+        el('vpBadge').textContent='EDİT MODU · BOYAMA FIRÇASI';
+        el('vpBadge').className='vp-badge edit-mode';
+        document.querySelectorAll('.rp-tab').forEach(t=>{ if(t.dataset.rpt==='material') t.click(); });
+        toast('🖌️ Boyama Fırçası Aktif. Sol tıkla sürükleyerek objeyi boyayabilirsiniz!','success',3000);
+    });
+
+    el('mSaveAsClose')?.addEventListener('click', () => el('saveAsModal').style.display='none');
+    el('mSaveAsCancel')?.addEventListener('click', () => el('saveAsModal').style.display='none');
 
     // Tool buttons (menubar)
     document.querySelectorAll('.mb-btn.tool-btn').forEach(btn => btn.addEventListener('click', function() {
@@ -3134,23 +3271,6 @@ function colorGeometry(geo, color) {
 
 function toggleMapDesignMode(enable) {
     if (enable) {
-        APP.scene.background = new THREE.Color(0xaaccff);
-        if (APP.scene.fog) {
-            APP.scene.fog.color.set(0xaaccff);
-            APP.scene.fog.density = 0.0035;
-        } else {
-            APP.scene.fog = new THREE.FogExp2(0xaaccff, 0.0035);
-        }
-        if (APP.grid) APP.grid.visible = false;
-        if (APP.axesHelper) APP.axesHelper.visible = false;
-        if (APP.ambLight) {
-            APP.ambLight.intensity = 1.4;
-            APP.ambLight.color.set(0xe0f0ff);
-        }
-        if (APP.sunLight) {
-            APP.sunLight.intensity = 1.8;
-            APP.sunLight.color.set(0xfffaf0);
-        }
         if (!APP.grassGround) {
             const grassGeo = new THREE.PlaneGeometry(10000, 10000);
             const grassMat = new THREE.MeshStandardMaterial({
@@ -3165,23 +3285,7 @@ function toggleMapDesignMode(enable) {
             APP.scene.add(APP.grassGround);
         }
         APP.grassGround.visible = true;
-        toast('🏞️ Harita Tasarım Modu aktif', 'info', 1500);
     } else {
-        APP.scene.background = new THREE.Color(0x060a0e);
-        if (APP.scene.fog) {
-            APP.scene.fog.color.set(0x060a0e);
-            APP.scene.fog.density = 0.0022;
-        }
-        if (APP.grid) APP.grid.visible = el('tglGrid')?.checked !== false;
-        if (APP.axesHelper) APP.axesHelper.visible = true;
-        if (APP.ambLight) {
-            APP.ambLight.intensity = 1.0;
-            APP.ambLight.color.set(0x3a4a60);
-        }
-        if (APP.sunLight) {
-            APP.sunLight.intensity = 1.5;
-            APP.sunLight.color.set(0xffffff);
-        }
         if (APP.grassGround) {
             APP.grassGround.visible = false;
         }
