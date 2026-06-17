@@ -29,6 +29,7 @@
             <div class="mb-btns">
                 <button class="mb-btn" id="mbNew" title="Yeni Sahne Ctrl+N"><span class="mbi">📄</span>Yeni</button>
                 <button class="mb-btn" id="mbSave" title="Kaydet Ctrl+S"><span class="mbi">💾</span>Kaydet</button>
+                <button class="mb-btn" id="mbSaveAs" title="Farklı Kaydet Ctrl+Shift+S"><span class="mbi">💾✍️</span>Farklı Kaydet</button>
                 <button class="mb-btn" id="mbLoad" title="Proje Yükle"><span class="mbi">📂</span>Aç</button>
             </div>
         </div>
@@ -305,6 +306,9 @@
                         <button class="shp" data-s="tent" title="Kamp Çadırı"><svg viewBox="0 0 36 36" fill="none" stroke="#81c784" stroke-width="1.4"><polygon points="18,6 30,28 6,28"/><line x1="18" y1="14" x2="18" y2="28"/></svg>Çadır</button>
                         <button class="shp" data-s="castle" title="Mini Kale"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><rect x="6" y="14" width="24" height="14" rx="1"/><rect x="15" y="20" width="6" height="8"/><path d="M4 10 H32 M10 10 V14 M26 10 V14"/></svg>Şato</button>
                         <button class="shp" data-s="lighthouse" title="Deniz Feneri"><svg viewBox="0 0 36 36" fill="none" stroke="#ffd54f" stroke-width="1.4"><path d="M14 30 L16 10 H20 L22 30 Z"/><circle cx="18" cy="7" r="3"/></svg>Deniz Feneri</button>
+                        <button class="shp" data-s="ruins" title="Harabe Duvarı"><svg viewBox="0 0 36 36" fill="none" stroke="#8d6e63" stroke-width="1.4"><rect x="4" y="26" width="28" height="6" rx="0.5"/><rect x="8" y="10" width="6" height="16"/><rect x="22" y="14" width="6" height="12"/><line x1="14" y1="10" x2="22" y2="18"/></svg>Harabe</button>
+                        <button class="shp" data-s="cabin" title="Ahşap Kulübe"><svg viewBox="0 0 36 36" fill="none" stroke="#a1887f" stroke-width="1.4"><polygon points="6,16 18,6 30,16"/><rect x="8" y="16" width="20" height="14"/><rect x="15" y="22" width="6" height="8"/></svg>Kulübe</button>
+                        <button class="shp" data-s="portal" title="Geçit / Portal"><svg viewBox="0 0 36 36" fill="none" stroke="#9c27b0" stroke-width="1.4"><circle cx="18" cy="18" r="10"/><rect x="8" y="28" width="20" height="4"/><ellipse cx="18" cy="18" rx="6" ry="6" stroke-dasharray="2,2"/></svg>Geçit</button>
                     </div>
 
                     <!-- Sub-category: Doğa & Çevre -->
@@ -316,6 +320,9 @@
                         <button class="shp" data-s="campfire" title="Kamp Ateşi"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><path d="M8 28 L28 22 M28 28 L8 22"/><path d="M14 22 Q18 8 22 22 Z"/></svg>Kamp Ateşi</button>
                         <button class="shp" data-s="crystal" title="Enerji Kristali"><svg viewBox="0 0 36 36" fill="none" stroke="#e040fb" stroke-width="1.4"><polygon points="18,4 26,18 18,32 10,18"/></svg>Kristal</button>
                         <button class="shp" data-s="mushroom" title="Mantar"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><path d="M14 20 A6 6 0 0 1 22 20 Z"/><rect x="16" y="20" width="4" height="8" rx="1"/></svg>Mantar</button>
+                        <button class="shp" data-s="cactus" title="Kaktüs"><svg viewBox="0 0 36 36" fill="none" stroke="#2e7d32" stroke-width="1.4"><path d="M18 6 V30 M12 14 V22 H18 M24 10 V18 H18"/><circle cx="18" cy="6" r="1"/></svg>Kaktüs</button>
+                        <button class="shp" data-s="cloud" title="Bulut"><svg viewBox="0 0 36 36" fill="none" stroke="#ffffff" stroke-width="1.4"><path d="M10 24 A 6 6 0 0 1 14 12 A 8 8 0 0 1 28 16 A 6 6 0 0 1 26 24 Z"/></svg>Bulut</button>
+                        <button class="shp" data-s="flower" title="Çiçek"><svg viewBox="0 0 36 36" fill="none" stroke="#f48fb1" stroke-width="1.4"><circle cx="18" cy="18" r="4" stroke="#ffeb3b"/><path d="M18 22 V32"/><circle cx="18" cy="10" r="4"/><circle cx="10" cy="18" r="4"/><circle cx="26" cy="18" r="4"/><circle cx="18" cy="26" r="4"/></svg>Çiçek</button>
                     </div>
 
                     <!-- Sub-category: Eşyalar & Savaş -->
@@ -333,6 +340,9 @@
                         <button class="shp" data-s="flag" title="Kale Bayrağı"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><line x1="10" y1="4" x2="10" y2="32"/><polygon points="10,6 26,12 10,18"/></svg>Bayrak</button>
                         <button class="shp" data-s="gravestone" title="Mezar Taşı"><svg viewBox="0 0 36 36" fill="none" stroke="#90a4ae" stroke-width="1.4"><path d="M10 30 V12 A8 8 0 0 1 26 12 V30 Z"/><line x1="14" y1="18" x2="22" y2="18"/><line x1="18" y1="14" x2="18" y2="22"/></svg>Mezar</button>
                         <button class="shp" data-s="cannon" title="Gülle Topu"><svg viewBox="0 0 36 36" fill="none" stroke="#37474f" stroke-width="1.4"><line x1="8" y1="22" x2="28" y2="12" stroke-width="2"/><circle cx="12" cy="24" r="5"/><circle cx="24" cy="24" r="5"/></svg>Top</button>
+                        <button class="shp" data-s="crate" title="Ahşap Kasa"><svg viewBox="0 0 36 36" fill="none" stroke="#d7ccc8" stroke-width="1.4"><rect x="6" y="6" width="24" height="24" rx="1"/><line x1="6" y1="6" x2="30" y2="30"/><line x1="6" y1="30" x2="30" y2="6"/></svg>Kasa</button>
+                        <button class="shp" data-s="anvil" title="Örs"><svg viewBox="0 0 36 36" fill="none" stroke="#424242" stroke-width="1.4"><path d="M6 10 H30 L26 18 H10 Z M10 26 H26 V18 H10 Z"/></svg>Örs</button>
+                        <button class="shp" data-s="wagon" title="At Arabası/Vagon"><svg viewBox="0 0 36 36" fill="none" stroke="#8d6e63" stroke-width="1.4"><rect x="6" y="10" width="24" height="12"/><circle cx="10" cy="26" r="4"/><circle cx="26" cy="26" r="4"/><line x1="4" y1="14" x2="6" y2="14"/></svg>Vagon</button>
                     </div>
                 </div>
             </div>

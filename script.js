@@ -52,6 +52,7 @@ const APP = {
 
     // History
     history: [], histIdx: -1, MAX_HIST: 80,
+    fileHandle: null,
 };
 
 /* ════════════════════════════════════════
@@ -238,6 +239,15 @@ const SHAPE_INFO = {
     pine:      { label:'Çam Ağacı', color:0x2e7d32 },
     mushroom:  { label:'Mantar',   color:0xff8a80 },
     cannon:    { label:'Top',      color:0x37474f },
+    ruins:     { label:'Harabe',   color:0x8d6e63 },
+    cabin:     { label:'Kulübe',   color:0xa1887f },
+    portal:    { label:'Geçit',    color:0x9c27b0 },
+    cactus:    { label:'Kaktüs',   color:0x2e7d32 },
+    cloud:     { label:'Bulut',    color:0xffffff },
+    flower:    { label:'Çiçek',    color:0xf48fb1 },
+    crate:     { label:'Kasa',     color:0xd7ccc8 },
+    anvil:     { label:'Örs',      color:0x424242 },
+    wagon:     { label:'Vagon',    color:0x8d6e63 },
     terrain_mount:{ label:'Dağlar', color:0xa1887f },
     terrain_dunes:{ label:'Kumul',  color:0xffe082 },
     terrain_canyon:{ label:'Kanyon',color:0xffab91 },
@@ -589,6 +599,93 @@ function buildGeo(type, p = {}) {
             const base = new THREE.BoxGeometry(s*0.35, s*0.15, s*0.5); base.translate(0, s*0.15, 0);
             const merged = mergeBufferGeometries([barrel, wheel1, wheel2, base]);
             return { geo: merged || barrel, params: {} };
+        }
+        case 'ruins': {
+            const base = new THREE.BoxGeometry(s, s*0.1, s*0.4); base.translate(0, s*0.05, 0);
+            const col1 = new THREE.CylinderGeometry(s*0.08, s*0.08, s*0.7, 6); col1.translate(-s*0.3, s*0.45, 0);
+            const col2 = new THREE.CylinderGeometry(s*0.08, s*0.08, s*0.4, 6); col2.rotateX(0.4); col2.translate(s*0.25, s*0.2, s*0.1);
+            const top = new THREE.BoxGeometry(s*0.4, s*0.08, s*0.15); top.rotateZ(-0.2); top.translate(-s*0.2, s*0.82, 0);
+            const merged = mergeBufferGeometries([base, col1, col2, top]);
+            return { geo: merged || base, params: {} };
+        }
+        case 'cabin': {
+            const body = new THREE.BoxGeometry(s*0.8, s*0.5, s*0.7); body.translate(0, s*0.25, 0);
+            const roofShape = new THREE.Shape();
+            roofShape.moveTo(0, s*0.3);
+            roofShape.lineTo(-s*0.48, 0);
+            roofShape.lineTo(s*0.48, 0);
+            roofShape.closePath();
+            const roof = new THREE.ExtrudeGeometry(roofShape, { depth: s*0.8, bevelEnabled: false });
+            roof.rotateY(Math.PI/2);
+            roof.translate(0, s*0.5, -s*0.4);
+            const chimney = new THREE.BoxGeometry(s*0.12, s*0.3, s*0.12); chimney.translate(s*0.2, s*0.7, s*0.1);
+            const merged = mergeBufferGeometries([body, roof, chimney]);
+            return { geo: merged || body, params: {} };
+        }
+        case 'portal': {
+            const base = new THREE.BoxGeometry(s*0.9, s*0.1, s*0.3); base.translate(0, s*0.05, 0);
+            const frame = new THREE.TorusGeometry(s*0.38, s*0.06, 6, 12); frame.translate(0, s*0.45, 0);
+            const gate = new THREE.CylinderGeometry(s*0.32, s*0.32, s*0.04, 8); gate.rotateX(Math.PI/2); gate.translate(0, s*0.45, 0);
+            const merged = mergeBufferGeometries([base, frame, gate]);
+            return { geo: merged || frame, params: {} };
+        }
+        case 'cactus': {
+            const trunk = new THREE.CylinderGeometry(s*0.06, s*0.08, s*0.85, 6); trunk.translate(0, s*0.425, 0);
+            const armL1 = new THREE.CylinderGeometry(s*0.05, s*0.05, s*0.2, 5); armL1.rotateZ(Math.PI/2); armL1.translate(-s*0.15, s*0.35, 0);
+            const armL2 = new THREE.CylinderGeometry(s*0.05, s*0.05, s*0.35, 5); armL2.translate(-s*0.25, s*0.5, 0);
+            const armR1 = new THREE.CylinderGeometry(s*0.05, s*0.05, s*0.2, 5); armR1.rotateZ(-Math.PI/2); armR1.translate(s*0.15, s*0.55, 0);
+            const armR2 = new THREE.CylinderGeometry(s*0.05, s*0.05, s*0.25, 5); armR2.translate(s*0.25, s*0.65, 0);
+            const merged = mergeBufferGeometries([trunk, armL1, armL2, armR1, armR2]);
+            return { geo: merged || trunk, params: {} };
+        }
+        case 'cloud': {
+            const s1 = new THREE.SphereGeometry(s*0.22, 6, 6); s1.translate(0, s*0.4, 0);
+            const s2 = new THREE.SphereGeometry(s*0.17, 6, 6); s2.translate(-s*0.24, s*0.34, 0);
+            const s3 = new THREE.SphereGeometry(s*0.18, 6, 6); s3.translate(s*0.24, s*0.36, 0);
+            const s4 = new THREE.SphereGeometry(s*0.14, 6, 6); s4.translate(0, s*0.52, -s*0.05);
+            const merged = mergeBufferGeometries([s1, s2, s3, s4]);
+            return { geo: merged || s1, params: {} };
+        }
+        case 'flower': {
+            const stem = new THREE.CylinderGeometry(s*0.02, s*0.02, s*0.7, 5); stem.translate(0, s*0.35, 0);
+            const center = new THREE.CylinderGeometry(s*0.1, s*0.1, s*0.05, 6); center.rotateX(0.3); center.translate(0, s*0.72, 0);
+            const petals = [];
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * Math.PI * 2) / 5;
+                const pet = new THREE.SphereGeometry(s*0.08, 4, 4);
+                pet.scale(1.2, 0.4, 1.2);
+                pet.translate(Math.cos(angle)*s*0.14, s*0.72, Math.sin(angle)*s*0.14);
+                petals.push(pet);
+            }
+            const merged = mergeBufferGeometries([stem, center, ...petals]);
+            return { geo: merged || center, params: {} };
+        }
+        case 'crate': {
+            const body = new THREE.BoxGeometry(s*0.75, s*0.75, s*0.75); body.translate(0, s*0.375, 0);
+            const b1 = new THREE.BoxGeometry(s*0.8, s*0.8, s*0.08); b1.translate(0, s*0.375, s*0.37);
+            const b2 = new THREE.BoxGeometry(s*0.8, s*0.8, s*0.08); b2.translate(0, s*0.375, -s*0.37);
+            const b3 = new THREE.BoxGeometry(s*0.08, s*0.8, s*0.8); b3.translate(s*0.37, s*0.375, 0);
+            const b4 = new THREE.BoxGeometry(s*0.08, s*0.8, s*0.8); b4.translate(-s*0.37, s*0.375, 0);
+            const merged = mergeBufferGeometries([body, b1, b2, b3, b4]);
+            return { geo: merged || body, params: {} };
+        }
+        case 'anvil': {
+            const base = new THREE.BoxGeometry(s*0.6, s*0.15, s*0.35); base.translate(0, s*0.075, 0);
+            const waist = new THREE.CylinderGeometry(s*0.1, s*0.15, s*0.25, 6); waist.translate(0, s*0.275, 0);
+            const top = new THREE.BoxGeometry(s*0.5, s*0.18, s*0.25); top.translate(-s*0.05, s*0.49, 0);
+            const horn = new THREE.ConeGeometry(s*0.12, s*0.25, 5); horn.rotateZ(-Math.PI/2); horn.translate(s*0.3, s*0.49, 0);
+            const merged = mergeBufferGeometries([base, waist, top, horn]);
+            return { geo: merged || top, params: {} };
+        }
+        case 'wagon': {
+            const bed = new THREE.BoxGeometry(s*0.8, s*0.1, s*0.5); bed.translate(0, s*0.2, 0);
+            const shaft = new THREE.CylinderGeometry(s*0.02, s*0.02, s*0.4, 5); shaft.rotateZ(Math.PI/2); shaft.translate(s*0.5, s*0.18, 0);
+            const w1 = new THREE.CylinderGeometry(s*0.14, s*0.14, s*0.06, 6); w1.rotateX(Math.PI/2); w1.translate(-s*0.3, s*0.14, -s*0.28);
+            const w2 = w1.clone().translate(0, 0, s*0.56);
+            const w3 = new THREE.CylinderGeometry(s*0.14, s*0.14, s*0.06, 6); w3.rotateX(Math.PI/2); w3.translate(s*0.3, s*0.14, -s*0.28);
+            const w4 = w3.clone().translate(0, 0, s*0.56);
+            const merged = mergeBufferGeometries([bed, shaft, w1, w2, w3, w4]);
+            return { geo: merged || bed, params: {} };
         }
         case 'torch': {
             const stick = new THREE.CylinderGeometry(s*0.03, s*0.02, s*0.5, 6);
@@ -974,6 +1071,7 @@ function applySculpt(e) {
                 array[i * 3 + 2] = baseColor.b;
             }
             geo.setAttribute('color', new THREE.BufferAttribute(array, 3));
+            APP.selected.material = APP.selected.material.clone();
             APP.selected.material.vertexColors = true;
             APP.selected.material.needsUpdate = true;
         }
@@ -1364,8 +1462,12 @@ function duplicateObj(obj) {
     const m2 = new THREE.Mesh(obj.geometry.clone(), obj.material.clone());
     m2.position.copy(obj.position).add(new THREE.Vector3(5,0,5));
     m2.rotation.copy(obj.rotation); m2.scale.copy(obj.scale);
-    m2.castShadow=true; m2.receiveShadow=true;
+    m2.castShadow = obj.castShadow;
+    m2.receiveShadow = obj.receiveShadow;
     m2.userData = { ...obj.userData, id:uid(), name:obj.userData.name+' Kopyası' };
+    if (obj.userData.origPosition) {
+        m2.userData.origPosition = new Float32Array(obj.userData.origPosition);
+    }
     addWireEdges(m2);
     APP.scene.add(m2); APP.objects.push(m2);
     selectObj(m2); refreshOutliner(); updateStats(); saveHist('dup');
@@ -2186,7 +2288,7 @@ function clearEditHelpers() {
 function refreshOutliner() {
     const out=el('outliner');
     if (!APP.objects.length) { out.innerHTML='<div class="out-empty">Sahne boş</div>'; return; }
-    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️',bridge:'🌉',torch:'🕯️',lantern:'🏮',fence:'🚧',well:'⛲',campfire:'🔥',tent:'⛺',windmill:'⚙️',boat:'⛵',crystal:'💎',pillar:'🏛️',flag:'🚩',gravestone:'🪦',castle:'🏰',lighthouse:'🚨',pine:'🌲',mushroom:'🍄',cannon:'💥',terrain:'⛳',terrain_mount:'🏔️',terrain_dunes:'⏳',terrain_canyon:'🧱',terrain_hills:'🍀',terrain_lake:'💧',terrain_volcano:'🌋',terrain_island:'🏝️',terrain_plain:'🌾',terrain_swamp:'🐊',terrain_oasis:'🌴',terrain_fjord:'🗻',terrain_river:'🌊'};
+    const icons={box:'▪',cylinder:'⭕',sphere:'●',cone:'▲',torus:'◯',plane:'▬',capsule:'💊',pyramid:'🔺',tube:'⬜',ring:'◉',octa:'◈',dodeca:'◇',icosa:'◆',tetra:'△',spring:'🌀',arrow:'→',prism:'▣',sketch:'✏',union:'⊕',intersect:'⊗',lathe:'⟳',text3d:'T',house:'🏠',sword:'⚔️',tower:'🏰',rock:'🪨',shield:'🛡️',chest:'📦',barrel:'🛢️',bridge:'🌉',torch:'🕯️',lantern:'🏮',fence:'🚧',well:'⛲',campfire:'🔥',tent:'⛺',windmill:'⚙️',boat:'⛵',crystal:'💎',pillar:'🏛️',flag:'🚩',gravestone:'🪦',castle:'🏰',lighthouse:'🚨',pine:'🌲',mushroom:'🍄',cannon:'💥',ruins:'🏛️',cabin:'🏚️',portal:'🌀',cactus:'🌵',cloud:'☁️',flower:'🌸',crate:'📦',anvil:'🔨',wagon:'🛒',terrain:'⛳',terrain_mount:'🏔️',terrain_dunes:'⏳',terrain_canyon:'🧱',terrain_hills:'🍀',terrain_lake:'💧',terrain_volcano:'🌋',terrain_island:'🏝️',terrain_plain:'🌾',terrain_swamp:'🐊',terrain_oasis:'🌴',terrain_fjord:'🗻',terrain_river:'🌊'};
     out.innerHTML=APP.objects.map(obj=>{
         const ic=icons[obj.userData.type]||'○';
         const sel=APP.selected?.userData.id===obj.userData.id;
@@ -2324,7 +2426,9 @@ function serObj(obj) {
             o: obj.material.opacity || 1 
         }, 
         vis: obj.visible, 
-        locked: obj.userData.locked || false 
+        locked: obj.userData.locked || false,
+        castShadow: obj.castShadow,
+        receiveShadow: obj.receiveShadow
     };
     
     if (obj.geometry.attributes.position && obj.userData.origPosition) {
@@ -2363,7 +2467,8 @@ function desObj(d) {
         m.position.fromArray(d.pos || [0,0,0]);
         m.rotation.set(...(d.rot || [0,0,0]));
         m.scale.fromArray(d.scl || [1,1,1]);
-        m.castShadow = m.receiveShadow = true;
+        m.castShadow = d.castShadow !== false;
+        m.receiveShadow = d.receiveShadow !== false;
         m.visible = d.vis !== false;
         m.userData = {
             id: d.id,
@@ -2414,23 +2519,35 @@ function dlBlob(blob,name) {
 /* ════════════════════════════════════════
    SAVE/LOAD
 ════════════════════════════════════════ */
-async function saveProject() {
-    const name=el('mSaveName').value.trim()||'Tasarim';
-    const data={version:'3.0',appName:'TriForge CAD Pro',name,savedAt:new Date().toISOString(),objectCount:APP.objects.length,objects:APP.objects.map(serObj)};
-    try {
-        const res=await fetch('save.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',name,data})});
-        const r=await res.json();
-        if (r.success){toast(`✓ "${name}" sunucuya kaydedildi`,'success',2500);el('saveModal').style.display='none';}
-        else toast('❌ Kaydetme hatası: '+r.error,'error',4000);
-    } catch(e){toast('❌ Sunucu hatası: '+e.message,'error',4000);}
+async function quickSave() {
+    if (APP.fileHandle) {
+        try {
+            const data = {
+                version: '3.0',
+                appName: 'TriForge CAD Pro',
+                savedAt: new Date().toISOString(),
+                objectCount: APP.objects.length,
+                objects: APP.objects.map(serObj)
+            };
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const writable = await APP.fileHandle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            toast('✓ Değişiklikler kaydedildi', 'success', 2500);
+        } catch (err) {
+            console.error('Kaydetme hatası:', err);
+            toast('❌ Kaydetme hatası: ' + err.message, 'error', 3000);
+        }
+    } else {
+        await saveProjectAs();
+    }
 }
 
-async function saveProjectLocal() {
-    const name = el('mSaveName').value.trim() || 'Tasarim';
+async function saveProjectAs() {
     const data = {
         version: '3.0',
         appName: 'TriForge CAD Pro',
-        name,
         savedAt: new Date().toISOString(),
         objectCount: APP.objects.length,
         objects: APP.objects.map(serObj)
@@ -2441,17 +2558,17 @@ async function saveProjectLocal() {
     if (window.showSaveFilePicker) {
         try {
             const handle = await window.showSaveFilePicker({
-                suggestedName: `${name}.json`,
+                suggestedName: `Tasarim.json`,
                 types: [{
                     description: 'TriForge CAD Pro Proje Dosyası',
                     accept: { 'application/json': ['.json'] }
                 }]
             });
+            APP.fileHandle = handle;
             const writable = await handle.createWritable();
             await writable.write(blob);
             await writable.close();
-            toast(`✓ "${name}" bilgisayara kaydedildi`, 'success', 2500);
-            el('saveModal').style.display = 'none';
+            toast('✓ Proje kaydedildi', 'success', 2500);
             return;
         } catch (err) {
             if (err.name === 'AbortError') return;
@@ -2459,9 +2576,42 @@ async function saveProjectLocal() {
         }
     }
     
-    dlBlob(blob, `${name}.json`);
-    toast(`✓ "${name}" indirildi`, 'success', 2500);
-    el('saveModal').style.display = 'none';
+    dlBlob(blob, `Tasarim.json`);
+    toast('✓ Proje indirildi', 'success', 2500);
+}
+
+async function openProjectLocal() {
+    if (window.showOpenFilePicker) {
+        try {
+            const [handle] = await window.showOpenFilePicker({
+                types: [{
+                    description: 'TriForge CAD Pro Proje Dosyası',
+                    accept: { 'application/json': ['.json'] }
+                }]
+            });
+            APP.fileHandle = handle;
+            const file = await handle.getFile();
+            const text = await file.text();
+            try {
+                const data = JSON.parse(text);
+                if (!data || !Array.isArray(data.objects)) {
+                    toast('❌ Geçersiz proje dosyası', 'error', 3000);
+                    return;
+                }
+                restoreHist(data);
+                saveHist('load');
+                toast(`✓ "${file.name.replace('.json','')}" başarıyla yüklendi`, 'success', 2500);
+            } catch (err) {
+                toast('❌ Dosya okuma hatası: ' + err.message, 'error', 3000);
+            }
+        } catch (err) {
+            if (err.name === 'AbortError') return;
+            console.warn('showOpenFilePicker failed, falling back to input:', err);
+            el('localFileInp').click();
+        }
+    } else {
+        el('localFileInp').click();
+    }
 }
 
 /* ════════════════════════════════════════
@@ -2653,12 +2803,14 @@ function bindAll() {
     el('sunY').addEventListener('input', function() { APP.sunLight.position.y=parseFloat(this.value); });
 
     // Header btns
-    el('mbNew').addEventListener('click', () => { if(APP.objects.length>0&&!confirm('Yeni sahne — kaydedilmemiş değişiklikler kaybolur.')) return; clearScene(); saveHist('new'); toast('🆕 Yeni sahne','info',1800); });
-    el('mbSave').addEventListener('click', () => { el('saveModal').style.display='flex'; el('mSaveName').focus(); });
-    el('mbLoad').addEventListener('click', () => el('localFileInp').click());
+    el('mbNew').addEventListener('click', () => { if(APP.objects.length>0&&!confirm('Yeni sahne — kaydedilmemiş değişiklikler kaybolur.')) return; clearScene(); APP.fileHandle = null; saveHist('new'); toast('🆕 Yeni sahne','info',1800); });
+    el('mbSave').addEventListener('click', quickSave);
+    el('mbSaveAs').addEventListener('click', saveProjectAs);
+    el('mbLoad').addEventListener('click', openProjectLocal);
     el('localFileInp').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
+        APP.fileHandle = null;
         const reader = new FileReader();
         reader.onload = function(evt) {
             try {
@@ -2669,7 +2821,7 @@ function bindAll() {
                 }
                 restoreHist(data);
                 saveHist('load');
-                toast(`✓ "${data.projectName || file.name.replace('.json','')}" başarıyla yüklendi`, 'success', 2500);
+                toast(`✓ "${file.name.replace('.json','')}" başarıyla yüklendi`, 'success', 2500);
             } catch(err) {
                 toast('❌ Dosya okuma hatası: ' + err.message, 'error', 3000);
             }
@@ -2797,7 +2949,16 @@ function bindKeyboard() {
             case 'y': if(e.ctrlKey){e.preventDefault();redo();} break;
             case 'd': if(e.ctrlKey){e.preventDefault();duplicateObj(APP.selected);} break;
             case 'n': if(e.ctrlKey){e.preventDefault();el('mbNew')?.click();} break;
-            case 's': if(e.ctrlKey){e.preventDefault();el('mbSave')?.click();} break;
+            case 's':
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        saveProjectAs();
+                    } else {
+                        quickSave();
+                    }
+                }
+                break;
             case 'k': if(e.ctrlKey){e.preventDefault();el('mbModeSketch')?.click();} break;
             case 'Tab': e.preventDefault();
                 if (APP.mode==='object') enterEditMode(); else exitEditMode(); break;
