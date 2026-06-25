@@ -12,6 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/OBJExporter.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="three-csg.js"></script>
 </head>
 <body>
 
@@ -31,6 +34,7 @@
                 <button class="mb-btn" id="mbSave" title="Kaydet Ctrl+S"><span class="mbi">💾</span>Kaydet</button>
                 <button class="mb-btn" id="mbSaveAs" title="Farklı Kaydet Ctrl+Shift+S"><span class="mbi">💾✍️</span>Farklı Kaydet</button>
                 <button class="mb-btn" id="mbLoad" title="Proje Yükle"><span class="mbi">📂</span>Aç</button>
+                <button class="mb-btn" id="mbImport" title="3D Model İçe Aktar (OBJ, STL)"><span class="mbi">📥</span>İçe Aktar</button>
             </div>
         </div>
         <div class="mb-sep"></div>
@@ -170,40 +174,48 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
             </button>
         </div>
+
         <div class="lt-divider"></div>
-        <!-- Draw Tools (visible in sketch mode) -->
-        <div class="lt-group" id="drawToolsGroup">
-            <button class="lt-btn draw-btn" id="dtLine" data-dt="line" title="Çizgi (L)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+        <!-- Modeling & Editing Tools -->
+        <div class="lt-group" id="editingToolsGroup">
+            <button class="lt-btn" id="ltPaintBrush" data-tool="paint" title="Boya Fırçası">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 3L21 6L9 18H6V15L18 3Z" />
+                    <path d="M9 14L10 15" />
+                    <path d="M3 21C5 21 5 19 6 18C7 17 8 18 8 20C8 21.5 6 22 3 21Z" fill="currentColor" />
+                </svg>
             </button>
-            <button class="lt-btn draw-btn" id="dtRect" data-dt="rect" title="Dikdörtgen (Rect)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            <button class="lt-btn" id="ltFacePaint" data-tool="facePaint" title="Yüzey Boyama">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12,3 20,9 15,21 7,15" />
+                    <path d="M3 21 C8 21 12 17 15 21" />
+                </svg>
             </button>
-            <button class="lt-btn draw-btn" id="dtCircle" data-dt="circle" title="Çember (C)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+            <button class="lt-btn" id="ltExtrudeFace" data-tool="extrudeFace" title="Yüzey Uzatma (Extrude)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 14L12 10L20 14L12 18Z" />
+                    <path d="M12 10V3" />
+                    <path d="M9 6L12 3L15 6" />
+                    <path d="M4 14V19L12 23L20 19V14" stroke-dasharray="2,2" />
+                </svg>
             </button>
-            <button class="lt-btn draw-btn" id="dtEllipse" data-dt="ellipse" title="Elips">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="10" ry="6"/></svg>
+            <button class="lt-btn" id="ltSculpt" data-tool="sculpt" title="Yoğurma (Sculpt)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12" />
+                    <path d="M12 6C15.31 6 18 8.69 18 12C18 14 17 15.5 15.5 17C14 18.5 13 20 12 20" stroke-dasharray="2,2" />
+                </svg>
             </button>
-            <button class="lt-btn draw-btn" id="dtTriangle" data-dt="triangle" title="Üçgen">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 22,21 2,21"/></svg>
-            </button>
-            <button class="lt-btn draw-btn" id="dtPoly" data-dt="poly" title="Çokgen (P)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 21,8 21,16 12,21 3,16 3,8"/></svg>
-            </button>
-            <button class="lt-btn draw-btn" id="dtStar" data-dt="star" title="Yıldız">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-            </button>
-            <button class="lt-btn draw-btn" id="dtArc" data-dt="arc" title="Yay">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19A9 9 0 1 1 19 5"/></svg>
-            </button>
-            <button class="lt-btn draw-btn" id="dtSpline" data-dt="spline" title="Serbest Çizgi">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 19c3-5 5-9 7-11s3-1 5 1 3 5 6 5"/></svg>
-            </button>
-            <button class="lt-btn draw-btn" id="dtText" data-dt="text3d" title="3D Metin">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4,7 4,4 20,4 20,7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+            <button class="lt-btn" id="ltSurfaceSnap" title="Yüzey Yapışması / Çakışma Önleme">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 10V4C5 2.9 5.9 2 7 2H17C18.1 2 19 2.9 19 4V10" />
+                    <path d="M5 10H9V14H5V10Z" fill="currentColor" />
+                    <path d="M15 10H19V14H15V10Z" fill="currentColor" />
+                    <path d="M12 18V22" />
+                    <path d="M9 20H15" />
+                </svg>
             </button>
         </div>
+
         <div class="lt-divider"></div>
         <!-- Measurement -->
         <div class="lt-group">
@@ -221,10 +233,7 @@
         <!-- Panel tabs -->
         <div class="lp-tabs">
             <button class="lp-tab active" data-lpt="shapes">Şekiller</button>
-            <button class="lp-tab" data-lpt="terrain">Arazi</button>
-            <button class="lp-tab" data-lpt="ops">İşlem</button>
             <button class="lp-tab" data-lpt="scene">Sahne</button>
-            <button class="lp-tab" data-lpt="draw">Çizim</button>
         </div>
 
         <!-- ─── SHAPES TAB ─── -->
@@ -297,12 +306,16 @@
                 </button>
                 <div class="lp-sec-body collapsed" id="secGameChars">
                     <div class="shp-grid">
-                        <button class="shp" data-s="mannequin" title="Karakter Şablonu"><svg viewBox="0 0 36 36" fill="none" stroke="#f48fb1" stroke-width="1.4"><circle cx="18" cy="8" r="4"/><rect x="12" y="13" width="12" height="12" rx="1"/><line x1="14" y1="25" x2="14" y2="33"/><line x1="22" y1="25" x2="22" y2="33"/></svg>Karakter</button>
-                        <button class="shp" data-s="knight" title="Şövalye"><svg viewBox="0 0 36 36" fill="none" stroke="#90caf9" stroke-width="1.4"><rect x="12" y="10" width="12" height="14" rx="1"/><circle cx="18" cy="7" r="3"/><line x1="8" y1="12" x2="12" y2="18"/><line x1="28" y1="12" x2="24" y2="18"/><line x1="14" y1="24" x2="14" y2="32"/><line x1="22" y1="24" x2="22" y2="32"/></svg>Şövalye</button>
-                        <button class="shp" data-s="wizard" title="Büyücü"><svg viewBox="0 0 36 36" fill="none" stroke="#b39ddb" stroke-width="1.4"><polygon points="18,4 26,14 10,14"/><circle cx="18" cy="18" r="4"/><path d="M12,22 L8,32 M24,22 L28,32"/></svg>Büyücü</button>
-                        <button class="shp" data-s="slime" title="Slime Canavarı"><svg viewBox="0 0 36 36" fill="none" stroke="#a5d6a7" stroke-width="1.4"><path d="M6,26 C6,16 30,16 30,26 Z"/><circle cx="14" cy="22" r="1.5"/><circle cx="22" cy="22" r="1.5"/></svg>Slime</button>
-                        <button class="shp" data-s="golem" title="Kaya Golemi"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><rect x="10" y="8" width="16" height="14" rx="2"/><rect x="6" y="10" width="4" height="10"/><rect x="26" y="10" width="4" height="10"/><line x1="13" y1="22" x2="13" y2="30"/><line x1="23" y1="22" x2="23" y2="30"/></svg>Golem</button>
-                        <button class="shp" data-s="beholder" title="Göz Canavarı"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><circle cx="18" cy="18" r="8"/><circle cx="18" cy="18" r="3" stroke="#ff3d00"/><line x1="12" y1="10" x2="8" y2="5"/><line x1="24" y1="10" x2="28" y2="5"/><line x1="18" y1="10" x2="18" y2="4"/></svg>Göz Canavarı</button>
+                        <button class="shp" data-s="mannequin" title="Karakter 1"><svg viewBox="0 0 36 36" fill="none" stroke="#f48fb1" stroke-width="1.4"><circle cx="18" cy="8" r="4"/><rect x="12" y="13" width="12" height="12" rx="1"/><line x1="14" y1="25" x2="14" y2="33"/><line x1="22" y1="25" x2="22" y2="33"/></svg>Karakter 1</button>
+                        <button class="shp" data-s="knight" title="Karakter 2"><svg viewBox="0 0 36 36" fill="none" stroke="#90caf9" stroke-width="1.4"><rect x="12" y="10" width="12" height="14" rx="1"/><circle cx="18" cy="7" r="3"/><line x1="8" y1="12" x2="12" y2="18"/><line x1="28" y1="12" x2="24" y2="18"/><line x1="14" y1="24" x2="14" y2="32"/><line x1="22" y1="24" x2="22" y2="32"/></svg>Karakter 2</button>
+                        <button class="shp" data-s="wizard" title="Karakter 3"><svg viewBox="0 0 36 36" fill="none" stroke="#b39ddb" stroke-width="1.4"><polygon points="18,4 26,14 10,14"/><circle cx="18" cy="18" r="4"/><path d="M12,22 L8,32 M24,22 L28,32"/></svg>Karakter 3</button>
+                        <button class="shp" data-s="cyborg" title="Karakter 4"><svg viewBox="0 0 36 36" fill="none" stroke="#80deea" stroke-width="1.4"><rect x="12" y="8" width="12" height="12" rx="2"/><rect x="10" y="20" width="16" height="10" rx="1"/><line x1="15" y1="14" x2="21" y2="14" stroke="#ff1744" stroke-width="2"/><line x1="12" y1="30" x2="12" y2="34"/><line x1="24" y1="30" x2="24" y2="34"/></svg>Karakter 4</button>
+                        <button class="shp" data-s="ninja" title="Karakter 5"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><circle cx="18" cy="8" r="4"/><path d="M12 14 L24 14 L20 28 L16 28 Z" fill="#212121"/><path d="M6 8 L14 14 M30 8 L22 14" stroke="#a78bfa" stroke-width="1.5"/><line x1="10" y1="20" x2="26" y2="20" stroke="#f43f5e" stroke-width="2"/></svg>Karakter 5</button>
+                        <button class="shp" data-s="ranger" title="Karakter 6"><svg viewBox="0 0 36 36" fill="none" stroke="#818cf8" stroke-width="1.4"><circle cx="18" cy="8" r="5" stroke="#38bdf8"/><rect x="11" y="14" width="14" height="14" rx="2"/><line x1="14" y1="28" x2="14" y2="33"/><line x1="22" y1="28" x2="22" y2="33"/><path d="M6 18 L11 20 M30 18 L25 20"/></svg>Karakter 6</button>
+                        <button class="shp" data-s="slime" title="Canavar 1"><svg viewBox="0 0 36 36" fill="none" stroke="#a5d6a7" stroke-width="1.4"><path d="M6,26 C6,16 30,16 30,26 Z"/><circle cx="14" cy="22" r="1.5"/><circle cx="22" cy="22" r="1.5"/></svg>Canavar 1</button>
+                        <button class="shp" data-s="golem" title="Canavar 2"><svg viewBox="0 0 36 36" fill="none" stroke="#b0bec5" stroke-width="1.4"><rect x="10" y="8" width="16" height="14" rx="2"/><rect x="6" y="10" width="4" height="10"/><rect x="26" y="10" width="4" height="10"/><line x1="13" y1="22" x2="13" y2="30"/><line x1="23" y1="22" x2="23" y2="30"/></svg>Canavar 2</button>
+                        <button class="shp" data-s="beholder" title="Canavar 3"><svg viewBox="0 0 36 36" fill="none" stroke="#ff8a80" stroke-width="1.4"><circle cx="18" cy="18" r="8"/><circle cx="18" cy="18" r="3" stroke="#ff3d00"/><line x1="12" y1="10" x2="8" y2="5"/><line x1="24" y1="10" x2="28" y2="5"/><line x1="18" y1="10" x2="18" y2="4"/></svg>Canavar 3</button>
+                        <button class="shp" data-s="dragon" title="Canavar 4"><svg viewBox="0 0 36 36" fill="none" stroke="#e57373" stroke-width="1.4"><path d="M8 20 C8 12 18 6 24 10 C30 14 28 22 20 24 C14 26 10 32 6 30 Z"/><path d="M22 6 L26 2 M26 10 L30 8 M16 6 L18 2"/><path d="M12 24 L6 28 M16 26 L12 32"/></svg>Canavar 4</button>
                     </div>
                 </div>
             </div>
@@ -394,6 +407,21 @@
                 </div>
             </div>
 
+            <!-- Collapsible: League of Legends (LoL) Figürleri -->
+            <div class="lp-sec">
+                <button class="lp-sec-hdr collapsed" data-sec="lol">
+                    <span>🏆 LEAGUE OF LEGENDS (LoL)</span>
+                    <span class="sec-arrow">▸</span>
+                </button>
+                <div class="lp-sec-body collapsed" id="secLol">
+                    <div class="shp-grid">
+                        <button class="shp" data-s="lol_yasuo" title="Yasuo Figürü"><svg viewBox="0 0 36 36" fill="none" stroke="#90caf9" stroke-width="1.4"><path d="M12 28 L18 8 L24 28 Z M6 22 L30 22"/><path d="M18 8 Q10 2 18 -4 Q26 2 18 8 Z" fill="#90caf9"/><line x1="8" y1="28" x2="28" y2="28"/></svg>Yasuo</button>
+                        <button class="shp" data-s="lol_teemo" title="Teemo Figürü"><svg viewBox="0 0 36 36" fill="none" stroke="#a5d6a7" stroke-width="1.4"><circle cx="18" cy="18" r="10"/><path d="M12 12 Q18 4 24 12 Z" fill="#8d6e63"/><circle cx="18" cy="14" r="2" fill="#ffd700"/><circle cx="14" cy="20" r="1.5"/><circle cx="22" cy="20" r="1.5"/></svg>Teemo</button>
+                        <button class="shp" data-s="lol_garen" title="Garen Figürü"><svg viewBox="0 0 36 36" fill="none" stroke="#fbc02d" stroke-width="1.4"><rect x="12" y="10" width="12" height="14" rx="2" fill="#1565c0"/><rect x="8" y="12" width="20" height="4" rx="1" fill="#ffd700"/><circle cx="18" cy="7" r="3"/></svg>Garen</button>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- Preset Size -->
             <div class="lp-sec">
@@ -436,205 +464,6 @@
                         <button class="qa qa-danger" id="qaDel">✕ Sil</button>
                         <button class="qa qa-danger" id="qaClear">🗑 Temizle</button>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ─── TERRAIN TAB ─── -->
-        <div class="lp-content" id="lptTerrain">
-            <div class="lp-sec">
-                <button class="lp-sec-hdr" data-sec="terrTemplates">
-                    <span>ARAZİ ŞABLONLARI</span>
-                    <span class="sec-arrow">▾</span>
-                </button>
-                <div class="lp-sec-body" id="secTerrTemplates">
-                    <div class="shp-grid">
-                        <button class="shp-terr shp active" data-t="mount"><span class="terr-ic">🏔️</span>Dağlar</button>
-                        <button class="shp-terr shp" data-t="dunes"><span class="terr-ic">⏳</span>Kumul</button>
-                        <button class="shp-terr shp" data-t="canyon"><span class="terr-ic">🧱</span>Kanyon</button>
-                        <button class="shp-terr shp" data-t="hills"><span class="terr-ic">🍀</span>Tepelik</button>
-                        <button class="shp-terr shp" data-t="lake"><span class="terr-ic">💧</span>Göl</button>
-                        <button class="shp-terr shp" data-t="volcano"><span class="terr-ic">🌋</span>Volkan</button>
-                        <button class="shp-terr shp" data-t="island"><span class="terr-ic">🏝️</span>Ada</button>
-                        <button class="shp-terr shp" data-t="plain"><span class="terr-ic">🌾</span>Ova</button>
-                        <button class="shp-terr shp" data-t="swamp"><span class="terr-ic">🐊</span>Bataklık</button>
-                        <button class="shp-terr shp" data-t="oasis"><span class="terr-ic">🌴</span>Vaha</button>
-                        <button class="shp-terr shp" data-t="fjord"><span class="terr-ic">🗻</span>Fiyort</button>
-                        <button class="shp-terr shp" data-t="river"><span class="terr-ic">🌊</span>Nehir</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lp-sec">
-                <button class="lp-sec-hdr" data-sec="terrSettings">
-                    <span>ARAZİ AYARLARI</span>
-                    <span class="sec-arrow">▾</span>
-                </button>
-                <div class="lp-sec-body" id="secTerrSettings">
-                    <div class="lp-form">
-                        <div class="lp-row">
-                            <label>Renk Teması</label>
-                            <select id="terrTheme" class="lp-sel">
-                                <option value="grass" selected>Çimenli (Yeşil)</option>
-                                <option value="sand">Kumlu (Sarı)</option>
-                                <option value="snow">Karlı (Beyaz)</option>
-                                <option value="lava">Volkanik (Lav)</option>
-                                <option value="clay">Kanyon (Kızıl)</option>
-                                <option value="swamp">Bataklık (Koyu Yeşil)</option>
-                                <option value="stone">Kayalık (Gri)</option>
-                            </select>
-                        </div>
-                        <div class="lp-row">
-                            <label>Genişlik (mm)</label>
-                            <input type="number" id="terrW" value="60" min="10" max="1000" class="lp-inp">
-                        </div>
-                        <div class="lp-row">
-                            <label>Derinlik (mm)</label>
-                            <input type="number" id="terrD" value="60" min="10" max="1000" class="lp-inp">
-                        </div>
-                        <div class="lp-row">
-                            <label>Yükseklik</label>
-                            <input type="range" id="terrHeight" min="0.1" max="5.0" step="0.1" value="1.0" class="lp-range">
-                        </div>
-                        <div class="lp-row">
-                            <label>Pürüzlülük</label>
-                            <input type="range" id="terrRoughness" min="0.0" max="5.0" step="0.1" value="1.0" class="lp-range">
-                        </div>
-                        <div class="lp-row">
-                            <label>Detay (Segment)</label>
-                            <input type="number" id="terrSeg" value="32" min="4" max="256" class="lp-inp">
-                        </div>
-                    </div>
-                    <button class="lp-apply-btn lp-green" id="addTerrainBtn" style="margin-top:10px;">⛳ Araziyi Sahneye Ekle</button>
-                </div>
-            </div>
-
-            <!-- Collapsible: Yol ve Ulaşım Elemanları -->
-            <div class="lp-sec">
-                <button class="lp-sec-hdr collapsed" data-sec="roads">
-                    <span>YOL VE ULAŞIM ELEMANLARI</span>
-                    <span class="sec-arrow">▸</span>
-                </button>
-                <div class="lp-sec-body collapsed" id="secRoads">
-                    <div class="shp-grid">
-                        <button class="shp" data-s="road_straight" title="Düz Yol"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><rect x="10" y="4" width="16" height="28" rx="1"/><line x1="18" y1="4" x2="18" y2="32" stroke="#ffeb3b" stroke-dasharray="3,3"/></svg>Düz Yol</button>
-                        <button class="shp" data-s="road_curve" title="Virajlı Yol"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M4 26 C16 26 26 16 26 4" stroke-width="6" stroke="#2b2b2b"/><path d="M4 26 C16 26 26 16 26 4" stroke-width="0.8" stroke="#ffeb3b" stroke-dasharray="2,2"/><rect x="23" y="4" width="6" height="4"/><rect x="4" y="23" width="4" height="6"/></svg>Viraj</button>
-                        <button class="shp" data-s="road_t_junction" title="T-Kavşak"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M4 18 H32 M18 18 V32"/><line x1="4" y1="18" x2="32" y2="18" stroke="#ffeb3b" stroke-dasharray="2,2"/><line x1="18" y1="18" x2="18" y2="32" stroke="#ffeb3b" stroke-dasharray="2,2"/></svg>T-Kavşak</button>
-                        <button class="shp" data-s="road_crossroad" title="Dört Yol Kavşağı"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><path d="M18 4 V32 M4 18 H32"/><line x1="18" y1="4" x2="18" y2="32" stroke="#ffeb3b" stroke-dasharray="2,2"/><line x1="4" y1="18" x2="32" y2="18" stroke="#ffeb3b" stroke-dasharray="2,2"/></svg>Dört Yol</button>
-                        <button class="shp" data-s="road_bridge" title="Köprü Yol"><svg viewBox="0 0 36 36" fill="none" stroke="#e0e0e0" stroke-width="1.4"><rect x="10" y="4" width="16" height="28" rx="1"/><path d="M6 10 H30 M6 26 H30"/></svg>Köprü Yol</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ─── OPS TAB ─── -->
-        <div class="lp-content" id="lptOps">
-            <div class="lp-sec">
-                <button class="lp-sec-hdr" data-sec="bool">
-                    <span>BOOLEAN İŞLEMLERİ</span>
-                    <span class="sec-arrow">▾</span>
-                </button>
-                <div class="lp-sec-body" id="secBool">
-                    <div class="ops-card" id="opUnion">
-                        <div class="ops-icon" style="color:#69f0ae">⊕</div>
-                        <div class="ops-info"><strong>Birleştir (Union)</strong><small>İki objeyi tek parça yap</small></div>
-                    </div>
-                    <div class="ops-card" id="opSubtract">
-                        <div class="ops-icon" style="color:#ff5252">⊖</div>
-                        <div class="ops-info"><strong>Çıkar / Delik Aç</strong><small>A'dan B'yi çıkar</small></div>
-                    </div>
-                    <div class="ops-card" id="opIntersect">
-                        <div class="ops-icon" style="color:#448aff">⊗</div>
-                        <div class="ops-info"><strong>Kesişim</strong><small>Ortak bölgeyi al</small></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lp-sec">
-                <button class="lp-sec-hdr" data-sec="mod">
-                    <span>MODİFİYELER</span>
-                    <span class="sec-arrow">▾</span>
-                </button>
-                <div class="lp-sec-body" id="secMod">
-                    <div class="ops-card" id="opExtrude">
-                        <div class="ops-icon" style="color:#ffd740">↑</div>
-                        <div class="ops-info"><strong>Extrude</strong><small>Yüzey/şekli uzat</small></div>
-                    </div>
-                    <div class="ops-card" id="opBevel">
-                        <div class="ops-icon" style="color:#bc8cff">◩</div>
-                        <div class="ops-info"><strong>Bevel</strong><small>Köşeleri yuvarla</small></div>
-                    </div>
-                    <div class="ops-card" id="opSubdiv">
-                        <div class="ops-icon" style="color:#3fb950">⊞</div>
-                        <div class="ops-info"><strong>Subdivide</strong><small>Geometriyi böl</small></div>
-                    </div>
-                    <div class="ops-card" id="opSmooth">
-                        <div class="ops-icon" style="color:#4fc3f7">≋</div>
-                        <div class="ops-info"><strong>Smooth</strong><small>Yüzeyi yumuşat</small></div>
-                    </div>
-                    <div class="ops-card" id="opSolidify">
-                        <div class="ops-icon" style="color:#ffab91">□</div>
-                        <div class="ops-info"><strong>Solidify</strong><small>Kalınlık ver</small></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lp-sec">
-                <button class="lp-sec-hdr" data-sec="modparams">
-                    <span>PARAMETRELİ AYARLAR</span>
-                    <span class="sec-arrow">▾</span>
-                </button>
-                <div class="lp-sec-body" id="secModParams">
-                    <div class="lp-form">
-                        <div class="lp-row"><label>Extrude (mm)</label><input type="number" id="pExtDepth" value="10" min="0.1" step="0.5" class="lp-inp"></div>
-                        <div class="lp-row"><label>Bevel (mm)</label><input type="number" id="pBevelAmt" value="2" min="0" step="0.1" class="lp-inp"></div>
-                        <div class="lp-row"><label>Solidify (mm)</label><input type="number" id="pSolidify" value="2" min="0.1" step="0.5" class="lp-inp"></div>
-                        <div class="lp-row"><label>Subdiv Seviye</label><input type="number" id="pSubdivLvl" value="1" min="1" max="4" class="lp-inp"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="lp-sec">
-                <button class="lp-sec-hdr" data-sec="array">
-                    <span>DİZİ (ARRAY)</span>
-                    <span class="sec-arrow">▾</span>
-                </button>
-                <div class="lp-sec-body" id="secArray">
-                    <div class="lp-form">
-                        <div class="lp-row"><label>X Adet</label><input type="number" id="arrX" value="3" min="1" max="50" class="lp-inp"></div>
-                        <div class="lp-row"><label>Y Adet</label><input type="number" id="arrY" value="1" min="1" max="50" class="lp-inp"></div>
-                        <div class="lp-row"><label>Z Adet</label><input type="number" id="arrZ" value="1" min="1" max="50" class="lp-inp"></div>
-                        <div class="lp-row"><label>Boşluk (mm)</label><input type="number" id="arrGap" value="25" min="0" step="1" class="lp-inp"></div>
-                        <div class="lp-row"><label>Tür</label>
-                            <select id="arrType" class="lp-sel">
-                                <option value="linear">Doğrusal</option>
-                                <option value="circular">Dairesel</option>
-                                <option value="radial">Radyal</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="lp-apply-btn" id="opArray">Diziyi Oluştur</button>
-                </div>
-            </div>
-
-            <div class="lp-sec">
-                <button class="lp-sec-hdr" data-sec="spin">
-                    <span>LATHE / SPIN (DÖNEL KATİ)</span>
-                    <span class="sec-arrow">▾</span>
-                </button>
-                <div class="lp-sec-body" id="secSpin">
-                    <div class="lp-form">
-                        <div class="lp-row"><label>Açı (°)</label><input type="number" id="latheAngle" value="360" min="10" max="360" class="lp-inp"></div>
-                        <div class="lp-row"><label>Dilim</label><input type="number" id="latheSegs" value="32" min="4" max="128" class="lp-inp"></div>
-                        <div class="lp-row"><label>Eksen</label>
-                            <select id="latheAxis" class="lp-sel">
-                                <option value="y">Y (Dikey)</option>
-                                <option value="x">X (Yatay)</option>
-                                <option value="z">Z (Derinlik)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="lp-apply-btn" id="opLathe">Lathe Uygula</button>
                 </div>
             </div>
         </div>
@@ -711,55 +540,7 @@
             </div>
         </div>
 
-        <!-- ─── DRAW TAB ─── -->
-        <div class="lp-content" id="lptDraw">
-            <div class="lp-sec">
-                <button class="lp-sec-hdr" data-sec="drawHelp">
-                    <span>ÇİZİM MODU REHBERİ</span>
-                    <span class="sec-arrow">▾</span>
-                </button>
-                <div class="lp-sec-body" id="secDrawHelp">
-                    <div class="draw-help">
-                        <p>Sol araç çubuğundan bir çizim aracı seçin, ardından Çizim Modu'na geçin.</p>
-                        <div class="draw-tool-list">
-                            <div class="dtl-item"><span class="dtl-key">L</span><span>Çizgi — click-click ile segment</span></div>
-                            <div class="dtl-item"><span class="dtl-key">C</span><span>Çember — merkez+yarıçap</span></div>
-                            <div class="dtl-item"><span class="dtl-key">Rect</span><span>Dikdörtgen — köşeden köşe</span></div>
-                            <div class="dtl-item"><span class="dtl-key">P</span><span>Çokgen — nokta nokta</span></div>
-                            <div class="dtl-item"><span class="dtl-key">Spline</span><span>Eğri çizgi — kontrol noktaları</span></div>
-                            <div class="dtl-item"><span class="dtl-key">★</span><span>Yıldız — merkez+iç+dış</span></div>
-                        </div>
-                        <p style="margin-top:6px;"><strong>Enter</strong> = Çizimi bitir<br><strong>Esc</strong> = İptal</p>
-                    </div>
-                </div>
-            </div>
-            <div class="lp-sec">
-                <button class="lp-sec-hdr" data-sec="drawSettings">
-                    <span>ÇİZİM AYARLARI</span>
-                    <span class="sec-arrow">▾</span>
-                </button>
-                <div class="lp-sec-body" id="secDrawSettings">
-                    <div class="lp-form">
-                        <div class="lp-row"><label>Extrude Yüksekliği (mm)</label><input type="number" id="sketchExtrudeH" value="10" min="0.1" step="0.5" class="lp-inp"></div>
-                        <div class="lp-row"><label>Yıldız İç Yarıçap</label><input type="number" id="starInner" value="8" min="1" class="lp-inp"></div>
-                        <div class="lp-row"><label>Çokgen Kenar Sayısı</label><input type="number" id="polyEdges" value="6" min="3" max="32" class="lp-inp"></div>
-                        <div class="lp-row"><label>Çizim Düzlemi</label>
-                            <select id="sketchPlane" class="lp-sel">
-                                <option value="xz">XZ (Grid)</option>
-                                <option value="xy">XY (Ön)</option>
-                                <option value="yz">YZ (Yan)</option>
-                            </select>
-                        </div>
-                        <div class="lp-row"><label>Çizgi Kalınlığı</label><input type="range" id="drawStroke" min="1" max="10" value="2" class="lp-range"></div>
-                        <div class="lp-row"><label>Çizim Rengi</label><input type="color" id="drawColor" value="#58a6ff" class="lp-color"></div>
-                        <div class="lp-row lp-toggle-row"><label>Snap Çizim</label><label class="tgl"><input type="checkbox" id="drawSnap" checked><span class="tsl"></span></label></div>
-                        <div class="lp-row lp-toggle-row"><label>Kapalı Şekil</label><label class="tgl"><input type="checkbox" id="drawClose" checked><span class="tsl"></span></label></div>
-                    </div>
-                    <button class="lp-apply-btn lp-green" id="extrudeSketch" disabled>⬆ Çizimi 3D'ye Dönüştür</button>
-                    <button class="lp-apply-btn lp-red" id="clearSketch" style="margin-top:4px;">✕ Çizimi Temizle</button>
-                </div>
-            </div>
-        </div>
+
     </aside>
 
     <!-- CENTER VIEWPORT -->
@@ -830,6 +611,9 @@
                 <button class="rp-tab active" data-rpt="transform">Dönüşüm</button>
                 <button class="rp-tab" data-rpt="geometry">Geometri</button>
                 <button class="rp-tab" data-rpt="material">Malzeme</button>
+                <button class="rp-tab" data-rpt="ops">İşlemler</button>
+                <button class="rp-tab" data-rpt="draw">Çizim</button>
+                <button class="rp-tab" data-rpt="toolopts">Araçlar</button>
                 <button class="rp-tab" data-rpt="info">Bilgi</button>
             </div>
 
@@ -1085,6 +869,355 @@
                 </div>
             </div>
 
+            <!-- ── ACTIONS & MODIFIERS TAB ── -->
+            <div class="rp-tc" id="rptOps">
+                <!-- Collapsible: BOOLEAN VE KESİCİLER -->
+                <div class="rp-sec">
+                    <button class="lp-sec-hdr" data-sec="opsBool">
+                        <span>BOOLEAN VE KESİCİLER</span>
+                        <span class="sec-arrow">▾</span>
+                    </button>
+                    <div class="lp-sec-body" id="secOpsBool">
+                        <div class="ops-card" id="opUnion">
+                            <div class="ops-icon" style="color:#69f0ae">⊕</div>
+                            <div class="ops-info"><strong>Birleştir (Union)</strong><small>Seçilen iki objeyi tek parça yap</small></div>
+                        </div>
+                        <div class="ops-card" id="opSubtract">
+                            <div class="ops-icon" style="color:#ff5252">⊖</div>
+                            <div class="ops-info"><strong>Çıkar (Subtract)</strong><small>Hedef objeden kesiciyi çıkar</small></div>
+                        </div>
+                        <div class="ops-card" id="opIntersect">
+                            <div class="ops-icon" style="color:#448aff">⊗</div>
+                            <div class="ops-info"><strong>Kesişim (Intersect)</strong><small>Ortak kesişim bölgesini al</small></div>
+                        </div>
+                        <div class="ops-card" id="opQuickHole" style="border: 1px dashed var(--ora); background: rgba(227,179,65,0.05)">
+                            <div class="ops-icon" style="color:var(--ora)">🕳</div>
+                            <div class="ops-info"><strong>Hızlı Delik Aç</strong><small>Merkezde otomatik kesici oluştur</small></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collapsible: GEOMETRİK MODİFİYELER -->
+                <div class="rp-sec">
+                    <button class="lp-sec-hdr" data-sec="opsGeom">
+                        <span>GEOMETRİK MODİFİYELER</span>
+                        <span class="sec-arrow">▾</span>
+                    </button>
+                    <div class="lp-sec-body" id="secOpsGeom">
+                        <!-- Hollow -->
+                        <div class="mod-group">
+                            <div class="mod-title">⚙ İçini Oy (Hollow / Shell)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>Et Kalınlığı (mm)</label><input type="number" id="pHollowThickness" value="2" min="0.1" step="0.5" class="lp-inp"></div>
+                            </div>
+                            <button class="lp-apply-btn" id="opHollow">İçini Oy</button>
+                        </div>
+                        <div class="mod-sep"></div>
+                        <!-- Solidify -->
+                        <div class="mod-group">
+                            <div class="mod-title">⚙ Kalınlık Ver (Solidify)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>Kalınlık (mm)</label><input type="number" id="pSolidify" value="2" min="0.1" step="0.5" class="lp-inp"></div>
+                            </div>
+                            <button class="lp-apply-btn" id="opSolidify">Kalınlık Uygula</button>
+                        </div>
+                        <div class="mod-sep"></div>
+                        <!-- Subdivide -->
+                        <div class="mod-group">
+                            <div class="mod-title">⚙ Yüzey Böl (Subdivide)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>Subdiv Seviye</label><input type="number" id="pSubdivLvl" value="1" min="1" max="4" class="lp-inp"></div>
+                            </div>
+                            <button class="lp-apply-btn" id="opSubdiv">Geometriyi Böl</button>
+                        </div>
+                        <div class="mod-sep"></div>
+                        <!-- Smooth -->
+                        <div class="mod-group">
+                            <div class="mod-title">⚙ Yumuşat (Smooth)</div>
+                            <button class="lp-apply-btn" id="opSmooth">Yumuşatmayı Uygula</button>
+                        </div>
+                        <div class="mod-sep"></div>
+                        <!-- Extrude -->
+                        <div class="mod-group">
+                            <div class="mod-title">⚙ Uzat (Extrude)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>Uzatma (mm)</label><input type="number" id="pExtDepth" value="10" min="0.1" step="0.5" class="lp-inp"></div>
+                            </div>
+                            <button class="lp-apply-btn" id="opExtrude">Extrude Uygula</button>
+                        </div>
+                        <div class="mod-sep"></div>
+                        <!-- Bevel -->
+                        <div class="mod-group">
+                            <div class="mod-title">⚙ Pah Kır (Bevel)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>Pah Miktarı (mm)</label><input type="number" id="pBevelAmt" value="2" min="0" step="0.1" class="lp-inp"></div>
+                            </div>
+                            <button class="lp-apply-btn" id="opBevel">Bevel Uygula</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collapsible: BÜKME VE DEFORMASYONLAR -->
+                <div class="rp-sec">
+                    <button class="lp-sec-hdr" data-sec="opsDeform">
+                        <span>BÜKME VE DEFORMASYONLAR</span>
+                        <span class="sec-arrow">▾</span>
+                    </button>
+                    <div class="lp-sec-body" id="secOpsDeform">
+                        <!-- Twist -->
+                        <div class="mod-group">
+                            <div class="mod-title">🌀 Burk (Twist)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>Açı (Derece)</label><input type="number" id="pTwistAngle" value="45" min="-360" max="360" step="5" class="lp-inp"></div>
+                            </div>
+                            <button class="lp-apply-btn" id="opTwist">Burk (Twist)</button>
+                        </div>
+                        <div class="mod-sep"></div>
+                        <!-- Taper -->
+                        <div class="mod-group">
+                            <div class="mod-title">📐 Konikleştir (Taper)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>Ölçek</label><input type="number" id="pTaperAmt" value="0.5" min="0.0" max="5.0" step="0.1" class="lp-inp"></div>
+                            </div>
+                            <button class="lp-apply-btn" id="opTaper">Konikleştir (Taper)</button>
+                        </div>
+                        <div class="mod-sep"></div>
+                        <!-- Bend -->
+                        <div class="mod-group">
+                            <div class="mod-title">〰 Bük (Bend)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>Açı (Derece)</label><input type="number" id="pBendAngle" value="45" min="-180" max="180" step="5" class="lp-inp"></div>
+                                <div class="lp-row"><label>Eksen</label>
+                                    <select id="pBendAxis" class="lp-sel">
+                                        <option value="x" selected>X Ekseni</option>
+                                        <option value="z">Z Ekseni</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="lp-apply-btn" id="opBend">Bük (Bend)</button>
+                        </div>
+                        <div class="mod-sep"></div>
+                        <!-- Noise -->
+                        <div class="mod-group">
+                            <div class="mod-title">🌊 Dalgalandır (Noise)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>Güç (Strength)</label><input type="number" id="pNoiseStrength" value="2" min="0.1" step="0.1" class="lp-inp"></div>
+                                <div class="lp-row"><label>Frekans (Freq)</label><input type="number" id="pNoiseFreq" value="0.1" min="0.01" step="0.01" class="lp-inp"></div>
+                            </div>
+                            <button class="lp-apply-btn" id="opNoise">Dalgalandır</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collapsible: DİZİ VE REPLİKASYON -->
+                <div class="rp-sec">
+                    <button class="lp-sec-hdr" data-sec="opsReplicate">
+                        <span>DİZİ VE REPLİKASYON</span>
+                        <span class="sec-arrow">▾</span>
+                    </button>
+                    <div class="lp-sec-body" id="secOpsReplicate">
+                        <!-- Array -->
+                        <div class="mod-group">
+                            <div class="mod-title">⧉ Dizi Oluştur (Array)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>X Adet</label><input type="number" id="arrX" value="3" min="1" max="50" class="lp-inp"></div>
+                                <div class="lp-row"><label>Y Adet</label><input type="number" id="arrY" value="1" min="1" max="50" class="lp-inp"></div>
+                                <div class="lp-row"><label>Z Adet</label><input type="number" id="arrZ" value="1" min="1" max="50" class="lp-inp"></div>
+                                <div class="lp-row"><label>Boşluk (mm)</label><input type="number" id="arrGap" value="25" min="0" step="1" class="lp-inp"></div>
+                                <div class="lp-row"><label>Tür</label>
+                                    <select id="arrType" class="lp-sel">
+                                        <option value="linear" selected>Doğrusal</option>
+                                        <option value="circular">Dairesel</option>
+                                        <option value="radial">Radyal</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="lp-apply-btn" id="opArray" style="margin-top: 8px;">Diziyi Oluştur</button>
+                        </div>
+                        <div class="mod-sep"></div>
+                        <!-- Lathe -->
+                        <div class="mod-group">
+                            <div class="mod-title">🌀 Dönel Katı (Lathe / Spin)</div>
+                            <div class="lp-form">
+                                <div class="lp-row"><label>Açı (°)</label><input type="number" id="latheAngle" value="360" min="10" max="360" class="lp-inp"></div>
+                                <div class="lp-row"><label>Dilim</label><input type="number" id="latheSegs" value="32" min="4" max="128" class="lp-inp"></div>
+                                <div class="lp-row"><label>Eksen</label>
+                                    <select id="latheAxis" class="lp-sel">
+                                        <option value="y" selected>Y (Dikey)</option>
+                                        <option value="x">X (Yatay)</option>
+                                        <option value="z">Z (Derinlik)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="lp-apply-btn" id="opLathe" style="margin-top: 8px;">Lathe Uygula</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── DRAW TAB ─── -->
+            <div class="rp-tc" id="rptDraw">
+                <div class="rp-sec">
+                    <button class="lp-sec-hdr" data-sec="drawHelp">
+                        <span>ÇİZİM MODU REHBERİ</span>
+                        <span class="sec-arrow">▾</span>
+                    </button>
+                    <div class="lp-sec-body" id="secDrawHelp">
+                        <div class="draw-help">
+                            <p>Aşağıdaki panelden bir çizim aracı seçin, ardından Çizim Modu'na geçin.</p>
+                            <div class="draw-tool-list">
+                                <div class="dtl-item"><span class="dtl-key">L</span><span>Çizgi — click-click ile segment</span></div>
+                                <div class="dtl-item"><span class="dtl-key">C</span><span>Çember — merkez+yarıçap</span></div>
+                                <div class="dtl-item"><span class="dtl-key">Rect</span><span>Dikdörtgen — köşeden köşe</span></div>
+                                <div class="dtl-item"><span class="dtl-key">P</span><span>Çokgen — nokta nokta</span></div>
+                                <div class="dtl-item"><span class="dtl-key">Spline</span><span>Eğri çizgi — kontrol noktaları</span></div>
+                                <div class="dtl-item"><span class="dtl-key">★</span><span>Yıldız — merkez+iç+dış</span></div>
+                            </div>
+                            <p style="margin-top:6px;"><strong>Enter</strong> = Çizimi bitir<br><strong>Esc</strong> = İptal</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="rp-sec">
+                    <button class="lp-sec-hdr" data-sec="drawShapes">
+                        <span>ÇİZİM ŞEKİLLERİ</span>
+                        <span class="sec-arrow">▾</span>
+                    </button>
+                    <div class="lp-sec-body" id="secDrawShapes">
+                        <div class="shp-grid">
+                            <button class="shp draw-btn" data-dt="line" title="Çizgi (L)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg>Çizgi</button>
+                            <button class="shp draw-btn" data-dt="rect" title="Dikdörtgen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Kare</button>
+                            <button class="shp draw-btn" data-dt="circle" title="Çember (C)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>Çember</button>
+                            <button class="shp draw-btn" data-dt="ellipse" title="Elips"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="10" ry="6"/></svg>Elips</button>
+                            <button class="shp draw-btn" data-dt="triangle" title="Üçgen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 22,21 2,21"/></svg>Üçgen</button>
+                            <button class="shp draw-btn" data-dt="poly" title="Çokgen (P)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 21,8 21,16 12,21 3,16 3,8"/></svg>Çokgen</button>
+                            <button class="shp draw-btn" data-dt="star" title="Yıldız"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>Yıldız</button>
+                            <button class="shp draw-btn" data-dt="arc" title="Yay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19A9 9 0 1 1 19 5"/></svg>Yay</button>
+                            <button class="shp draw-btn" data-dt="spline" title="Serbest Çizgi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 19c3-5 5-9 7-11s3-1 5 1 3 5 6 5"/></svg>Serbest</button>
+                            <button class="shp draw-btn" data-dt="text3d" title="3D Metin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4,7 4,4 20,4 20,7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>Metin</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="rp-sec">
+                    <button class="lp-sec-hdr" data-sec="drawSettings">
+                        <span>ÇİZİM AYARLARI</span>
+                        <span class="sec-arrow">▾</span>
+                    </button>
+                    <div class="lp-sec-body" id="secDrawSettings">
+                        <div class="lp-form">
+                            <div class="lp-row"><label>Extrude Yüksekliği (mm)</label><input type="number" id="sketchExtrudeH" value="10" min="0.1" step="0.5" class="lp-inp"></div>
+                            <div class="lp-row"><label>Yıldız İç Yarıçap</label><input type="number" id="starInner" value="8" min="1" class="lp-inp"></div>
+                            <div class="lp-row"><label>Çokgen Kenar Sayısı</label><input type="number" id="polyEdges" value="6" min="3" max="32" class="lp-inp"></div>
+                            <div class="lp-row"><label>Çizim Düzlemi</label>
+                                <select id="sketchPlane" class="lp-sel">
+                                    <option value="xz">XZ (Grid)</option>
+                                    <option value="xy">XY (Ön)</option>
+                                    <option value="yz">YZ (Yan)</option>
+                                </select>
+                            </div>
+                            <div class="lp-row"><label>Çizgi Kalınlığı</label><input type="range" id="drawStroke" min="1" max="10" value="2" class="lp-range"></div>
+                            <div class="lp-row"><label>Çizim Rengi</label><input type="color" id="drawColor" value="#58a6ff" class="lp-color"></div>
+                            <div class="lp-row lp-toggle-row"><label>Snap Çizim</label><label class="tgl"><input type="checkbox" id="drawSnap" checked><span class="tsl"></span></label></div>
+                            <div class="lp-row lp-toggle-row"><label>Kapalı Şekil</label><label class="tgl"><input type="checkbox" id="drawClose" checked><span class="tsl"></span></label></div>
+                        </div>
+                        <button class="lp-apply-btn lp-green" id="extrudeSketch" disabled>⬆ Çizimi 3D'ye Dönüştür</button>
+                        <button class="lp-apply-btn lp-red" id="clearSketch" style="margin-top:4px;">✕ Çizimi Temizle</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── ARAÇLAR TAB ─── -->
+            <div class="rp-tc" id="rptToolopts">
+                <div class="rp-sec" id="secActiveToolSettings" style="display:none;">
+                    <div class="rp-sec-hdr">
+                        <span id="activeToolTitle" style="color:var(--ora)">AKTİF ARAÇ AYARLARI</span>
+                    </div>
+                    <div class="rp-sec-body" id="activeToolBody">
+                        <!-- Paint Brush Options -->
+                        <div class="tool-opt-card" id="optPaint" style="display:none;">
+                            <div class="lp-row">
+                                <label>Fırça Rengi</label>
+                                <input type="color" id="brushColor" value="#ffc107" class="lp-color">
+                            </div>
+                            <div class="lp-row">
+                                <label>Yarıçap (px)</label>
+                                <input type="range" id="brushRadius" min="1" max="100" value="30" class="lp-range">
+                            </div>
+                            <div class="lp-row">
+                                <label>Güç (Strength)</label>
+                                <input type="range" id="brushStrength" min="0.1" max="10" step="0.1" value="2.0" class="lp-range">
+                            </div>
+                            <div class="lp-info-box">
+                                <small>Sol tıklayıp sürükleyerek objenin yüzeyini boyayın.</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Face Paint Options -->
+                        <div class="tool-opt-card" id="optFacePaint" style="display:none;">
+                            <div class="lp-row">
+                                <label>Yüzey Rengi</label>
+                                <input type="color" id="facePaintColor" value="#ffd700" class="lp-color">
+                            </div>
+                            <div class="lp-row" style="margin-top: 8px; display: flex; align-items: center;">
+                                <label for="facePaintCoplanar" style="flex: 1;">Tüm Düzlemi Boya</label>
+                                <input type="checkbox" id="facePaintCoplanar" checked style="width: 18px; height: 18px; cursor: pointer;">
+                            </div>
+                            <div class="lp-info-box">
+                                <small>Tıklayıp sürükleyerek yüzeyleri boyayın. 'Tüm Düzlemi Boya' seçiliyse tıklanan düz yüzeyin tamamı boyanır.</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Extrude/Face Tools Options -->
+                        <div class="tool-opt-card" id="optExtrudeFace" style="display:none;">
+                            <div class="lp-row">
+                                <label>İşlem Türü</label>
+                                <select id="faceOpSelect" class="lp-sel" style="width: 100%;">
+                                    <option value="extrude" selected>Uzat (Extrude)</option>
+                                    <option value="inset">İçerlek Yüzey (Inset)</option>
+                                    <option value="subdivide">Yüzey Böl (Subdivide)</option>
+                                    <option value="delete">Yüzey Sil (Delete)</option>
+                                    <option value="bevel">Pah Kır (Bevel)</option>
+                                    <option value="smooth">Lokal Yumuşat (Smooth)</option>
+                                </select>
+                            </div>
+                            <div class="lp-row" id="faceOpDepthRow" style="margin-top: 8px;">
+                                <label id="faceOpAmountLabel">Derinlik (mm)</label>
+                                <input type="number" id="extrudeFaceDepth" value="5" min="-500" max="500" step="0.5" class="lp-inp">
+                            </div>
+                            <div class="lp-info-box">
+                                <small id="faceOpHelpText">Bir yüzeye tıklayarak o yüzeyi belirtilen derinlikte dışarı doğru uzatın.</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Sculpt Options -->
+                        <div class="tool-opt-card" id="optSculpt" style="display:none;">
+                            <div class="lp-row">
+                                <label>Yoğurma Modu</label>
+                                <select id="sculptModeSelect" class="lp-sel">
+                                    <option value="pull">Çek (Pull)</option>
+                                    <option value="push">İt (Push)</option>
+                                    <option value="smooth">Yumuşat (Smooth)</option>
+                                    <option value="flatten">Düzleştir (Flatten)</option>
+                                    <option value="pinch">Sıkıştır (Pinch)</option>
+                                    <option value="inflate">Şişir (Inflate)</option>
+                                    <option value="revert">Geri Al (Revert)</option>
+                                </select>
+                            </div>
+                            <div class="lp-row">
+                                <label>Yarıçap (px)</label>
+                                <input type="range" id="sculptRadiusRange" min="1" max="100" value="30" class="lp-range">
+                            </div>
+                            <div class="lp-row">
+                                <label>Güç</label>
+                                <input type="range" id="sculptStrengthRange" min="0.1" max="10" step="0.1" value="2.0" class="lp-range">
+                            </div>
+                            <div class="lp-info-box">
+                                <small>Sol tıklayıp sürükleyerek objenin yapısını 3D olarak yoğurun.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ── INFO TAB ── -->
             <div class="rp-tc" id="rptInfo">
                 <div class="rp-sec">
@@ -1187,6 +1320,7 @@
 </div>
 
 <input type="file" id="localFileInp" accept=".json" style="display:none;">
+<input type="file" id="importFileInp" accept=".obj,.stl" style="display:none;">
 <div id="toastBox"></div>
 
 <script src="script.js"></script>

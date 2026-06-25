@@ -11,7 +11,7 @@ TriForge CAD Pro 3.0, tarayıcınız üzerinde çalışan güçlü bir 3D modell
 4. [Low-Poly Oyun Geometrisi Eklemek](#4-low-poly-oyun-geometrisi-eklemek)
 5. [3D Yazıcı Modelleri (Print Hazırlık)](#5-3d-yazıcı-modelleri-print-hazırlık)
 6. [Harita Tasarım Modu, Su Arazileri ve Yol Tasarımı](#6-harita-tasarım-modu-su-arazileri-ve-yol-tasarımı)
-7. [Blender Tarzı Yoğurma / Heykel (Sculpt) Modu](#7-blender-tarzı-yoğurma--heykel-sculpt-modu)
+7. [Blender Tarzı Modelleme, Boyama ve Yoğurma (Sculpt) Araçları](#7-blender-tarzı-modelleme-boyama-ve-yoğurma-sculpt-araçları)
 8. [2D Çizim (Sketch) ve 3D'ye Dönüştürme](#8-2d-çizim-sketch-ve-3dye-dönüştürme)
 9. [Gelişmiş İşlemler (Modifiyeler ve Boolean)](#9-gelişmiş-işlemler-modifiyeler-ve-boolean)
 10. [Dosya Kaydetme, Açma ve Aktarma](#10-dosya-kaydetme-açma-ve-aktarma)
@@ -23,8 +23,8 @@ TriForge CAD Pro 3.0, tarayıcınız üzerinde çalışan güçlü bir 3D modell
 
 Arayüz 6 ana bölgeye ayrılmıştır:
 - **Üst Menü Barı (Menubar):** Dosya açma, kaydetme, geri/ileri alma, hizalama (snap), export (STL/OBJ) ve kamera görünüm ayarları.
-- **Sol Dikey Araç Çubuğu (Left Toolbar):** Temel transform araçları (Seç, Taşı, Döndür, Ölçekle), 2D çizim araçları, ölçüm ve odaklanma araçları.
-- **Sol Panel:** Hazır şekiller (Temel, Gelişmiş, Mimari, Oyun), Boolean/Modifiye işlemleri, Sahne Hiyerarşisi (Outliner) ve Render ayarları.
+- **Sol Dikey Araç Çubuğu (Left Toolbar):** Temel transform araçları (Seç, Taşı, Döndür, Ölçekle) ve gelişmiş Blender tarzı modelleme araçları (Boya Fırçası, Yüzey Boyama, Yüzey Uzatma, Yoğurma ve Yüzey Yapışması).
+- **Sol Panel:** Hazır şekiller (Temel, Gelişmiş, Mimari, Oyun), 2D Çizim (Sketch) geometrisi, Boolean/Modifiye işlemleri, Sahne Hiyerarşisi (Outliner) ve Render ayarları.
 - **Orta Çalışma Alanı (Viewport Canvas):** 3D sahnenizin görüntülendiği, nesnelerin düzenlendiği ana 3D canvas alanıdır.
 - **Sağ Müfettiş Paneli (Inspector):** Seçili olan nesnenin konum, dönüşüm, ölçek, malzeme (renk, metaliklik vb.) ve geometri parametrelerinin düzenlendiği bölümdür.
 - **Alt Durum Çubuğu (Status Bar):** O andaki durumu, seçili objenin adını ve anlık transform verilerini gösterir.
@@ -52,6 +52,9 @@ Sahnede nesneleri hareket ettirmek ve şekillendirmek için 4 ana mod bulunur. S
 
 > [!TIP]
 > **Hizalama (Snap):** Tasarımlarınızın düzgün birleşmesi için üst menüden **Snap** butonunu aktif edin ve grid aralığını (örn: 1mm, 5mm) seçin. Hareketleriniz otomatik olarak bu aralıklara kilitlenecektir.
+
+> [!IMPORTANT]
+> **Yüzey Yapışması (Surface Snap):** Sol araç çubuğundaki mıknatıs simgeli **Yüzey Yapışması** aracı aktif edildiğinde, taşıdığınız nesne altındaki diğer nesnelerin yüzeylerine otomatik olarak sıfırlanır ve iç içe geçerek kaybolmaları (clipping) engellenir. Bu özellik etkinken nesne dikey eksende serbestçe yukarı çekilebilir ancak altındaki nesnenin/zeminin yüzeyinden aşağıya inemez.
 
 ---
 
@@ -158,24 +161,45 @@ Arazi sekmesindeki **Yol ve Ulaşım Elemanları** kategorisini kullanarak kendi
 
 ---
 
-## 7. Blender Tarzı Yoğurma / Heykel (Sculpt) Modu
+## 7. Blender Tarzı Modelleme, Boyama ve Yoğurma (Sculpt) Araçları
 
-Seçtiğiniz bir nesneyi kilden bir heykel gibi fareyle yoğurmak için Blender'daki heykel fırçalarına benzer bir sistem kullanabilirsiniz:
-1. Sahnede düzenlemek istediğiniz nesneyi seçin.
-2. Üst menüden **Edit Modu**'na geçin (Veya klavyeden `Tab` tuşuna basın).
-3. Sağ paneldeki "Geometri" sekmesinde yer alan **Yoğurma / Şekillendirme** fırça ayarlarını göreceksiniz.
-4. Fareyi nesne üzerine basılı tutarak sürüklediğinizde nesne şekil almaya başlar.
+Uygulamada, Blender benzeri profesyonel modelleme, yüzey manipülasyonu ve boyama işlemlerini doğrudan gerçekleştirebilirsiniz. Sol araç çubuğundaki ve sol paneldeki ilgili alanlar bu araçları kontrol eder:
 
-### 🖌 Fırça Türleri:
-- **Çek / Şişir (Pull):** Fareyi sürüklediğiniz yüzeyi dışa doğru şişirir.
-- **İt / Çökert (Push):** Fareyi sürüklediğiniz yüzeyi içe doğru çökertir, oyuk açar.
-- **Düzleştir (Smooth):** Yüzeydeki keskin köşeleri yumuşatır, pürüzsüz hale getirir.
-- **Kazı / Düzle (Flatten):** Farenin tıkladığı yerdeki yüzey seviyesini baz alarak o bölgeyi düz bir düzleme dönüştürür (düz zemin yapmak için idealdir).
-- **Orjinale Döndür / Sil (Revert):** Yaptığınız değişiklikleri silerek, fırçanın değdiği kısımları nesnenin ilk oluşturulduğu ham haline geri döndürür (bir nevi **silgi** görevi görür).
+### 🖌️ 1. Boya Fırçası (Paint Brush)
+Seçili 3D nesneyi serbestçe boyamanızı sağlar.
+- Sol araç çubuğundan fırça simgesine tıklayın.
+- Sol paneldeki **İşlem (Ops)** sekmesinde açılan **Aktif Araç Ayarları** panelinden **Fırça Boyutu** ve **Boya Rengi** parametrelerini ayarlayın.
+- Fare sol tıkı ile basılı tutup sürükleyerek nesneyi boyayın. Fare imlecinin ucunda, sahnedeki nesnenin yüzeyini ve eğimini takip eden 3D mavi bir halka (fırça boyutu önizlemesi) görünür. Boyama yumuşak bir geçişle (brush radius) uygulanır.
 
-### ⚙ Fırça Ayarları:
-- **Fırça Boyutu:** Yoğurma alanının genişliğini belirler.
-- **Fırça Gücü:** Yoğurmanın ne kadar hızlı ve sert uygulanacağını kontrol eder.
+### 🎯 2. Yüzey Boyama (Face Paint)
+Nesnenin sadece belirli yüzeylerini keskin sınırlarla boyamanızı sağlar.
+- Sol araç çubuğundan yüzey boyama simgesine tıklayın.
+- **Aktif Araç Ayarları** panelinden rengi seçin.
+- Tıklayıp basılı tutarak nesnenin üzerinde fareyi sürüklediğinizde üzerinden geçtiğiniz tüm yüzeyleri boyar.
+- **Tüm Düzlemi Boya** kutucuğu işaretliyse, tıkladığınız yüzeyle aynı düzlemde yer alan (coplanar) tüm yüzeyleri (örneğin bir küpün veya silindirin tüm düz yüzünü) tek tıkla komple boyar.
+
+### 🧱 3. Yüzey Araçları (Face Tools)
+Nesnenin yüzeyleri üzerinde Blender benzeri lokal işlemler yapmanızı sağlar. Sol araç çubuğundan küp üzerine ok olan simgeye tıklayarak aktif edebilir ve **Aktif Araç Ayarları** altındaki **İşlem Türü** seçeneğinden aşağıdaki işlemleri yapabilirsiniz:
+- **Uzat (Extrude):** Yüzeyi normali doğrultusunda belirtilen **Derinlik** miktarında dışarı doğru uzatır ve yan duvarları örer.
+- **İçerlek Yüzey (Inset):** Yüzeyi içeriye doğru daraltarak bir çerçeve ve yeni bir iç yüzey oluşturur. **Inset Oranı** (0.1 - 0.9) ile daralma miktarını ayarlayabilirsiniz.
+- **Yüzey Böl (Subdivide):** Seçili üçgen yüzeyi merkezinden bölerek 3 yeni küçük yüzeye ayırır. Detaylı lokal boyama veya extrude işlemleri için yüzey detayını arttırmada kullanılır.
+- **Yüzey Sil (Delete):** Seçili yüzeyi tamamen silerek model üzerinde bir boşluk/delik oluşturur.
+- **Pah Kır (Bevel):** Yüzeyi içeriye doğru daraltıp dışa doğru uzatarak kenarlarda pah/eğim oluşturur.
+- **Lokal Yumuşat (Smooth):** Seçili yüzeyin ve komşu yüzeylerin tepe noktalarını yerel olarak yumuşatarak daha dairesel/akıcı geçişler sağlar.
+
+### 🏺 4. Yoğurma / Heykel (Sculpt) Modu
+Seçtiğiniz bir nesneyi kilden bir heykel gibi fareyle yoğurmak için kullanılır.
+- Sol araç çubuğundan yoğurma simgesine tıklayın.
+- Fırça ile yoğurma yaparken nesnenin yüzeyinde brush boyutunu gösteren 3D mavi bir daire kılavuzluk eder.
+- Sol paneldeki **İşlem (Ops)** sekmesinde yer alan fırça ayarlarını kullanın:
+  - **Çek / Şişir (Pull):** Fareyi sürüklediğiniz yüzeyi dışa doğru şişirir.
+  - **İt / Çökert (Push):** Fareyi sürüklediğiniz yüzeyi içe doğru çökertir, oyuk açar.
+  - **Düzleştir (Smooth):** Yüzeydeki keskin köşeleri yumuşatır, pürüzsüz hale getirir.
+  - **Kazı / Düzle (Flatten):** Farenin tıkladığı yerdeki yüzey seviyesini baz alarak o bölgeyi düz bir düzleme dönüştürür.
+  - **Sıkıştır (Pinch):** Fırça altındaki tepe noktalarını merkeze doğru çekerek keskin hatlar oluşturur.
+  - **Şişir (Inflate):** Poligonları yerel yüzey normalleri doğrultusunda şişirerek hacim kazandırır.
+  - **Orjinale Döndür / Sil (Revert):** Yaptığınız değişiklikleri silerek nesneyi ilk ham haline geri döndürür.
+- **Fırça Boyutu** ve **Fırça Gücü** değerlerini dilediğiniz gibi ayarlayabilirsiniz.
 
 ---
 
