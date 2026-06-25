@@ -378,9 +378,6 @@
                         <button class="shp" data-s="wagon" title="At Arabası/Vagon"><svg viewBox="0 0 36 36" fill="none" stroke="#8d6e63" stroke-width="1.4"><rect x="6" y="10" width="24" height="12"/><circle cx="10" cy="26" r="4"/><circle cx="26" cy="26" r="4"/><line x1="4" y1="14" x2="6" y2="14"/></svg>Vagon</button>
                     </div>
                 </div>
-            </div>-s="wagon" title="At Arabası/Vagon"><svg viewBox="0 0 36 36" fill="none" stroke="#8d6e63" stroke-width="1.4"><rect x="6" y="10" width="24" height="12"/><circle cx="10" cy="26" r="4"/><circle cx="26" cy="26" r="4"/><line x1="4" y1="14" x2="6" y2="14"/></svg>Vagon</button>
-                    </div>
-                </div>
             </div>
 
             <!-- Collapsible: 3D Yazıcı Modelleri -->

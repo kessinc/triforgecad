@@ -924,44 +924,65 @@ function buildGeo(type, p = {}) {
             const hVal = p.h !== undefined ? p.h : 80;
             const tVal = p.t !== undefined ? p.t : 8;
             
-            const ringR = 12;
+            const handleScale = hVal / 80;
+            const bladeScale = wVal / 70;
+            
+            // Safety finger ring at the butt of the handle
+            const ringR = 12 * handleScale;
             const ringTube = tVal / 2.5;
-            const ring = new THREE.TorusGeometry(ringR, ringTube, 8, 24);
+            const ring = new THREE.TorusGeometry(ringR, ringTube, 12, 32);
             
+            // Ergonomic handle shape with finger grooves
             const handleShape = new THREE.Shape();
-            const handleScaleY = hVal / 80;
-            const handleScaleX = 1.0;
-            
-            handleShape.moveTo(0, 14 * handleScaleY);
-            handleShape.quadraticCurveTo(12 * handleScaleX, 35 * handleScaleY, 15 * handleScaleX, 55 * handleScaleY);
-            handleShape.quadraticCurveTo(12 * handleScaleX, 70 * handleScaleY, 8 * handleScaleX, 75 * handleScaleY);
-            handleShape.lineTo(-2 * handleScaleX, 70 * handleScaleY);
-            handleShape.quadraticCurveTo(2 * handleScaleX, 55 * handleScaleY, 0 * handleScaleX, 35 * handleScaleY);
-            handleShape.quadraticCurveTo(-8 * handleScaleX, 22 * handleScaleY, -10 * handleScaleX, 12 * handleScaleY);
+            handleShape.moveTo(5 * handleScale, 14 * handleScale);
+            handleShape.quadraticCurveTo(30 * handleScale, 20 * handleScale, 58 * handleScale, 6 * handleScale);
+            handleShape.lineTo(60 * handleScale, 2 * handleScale);
+            handleShape.lineTo(55 * handleScale, -6 * handleScale);
+            // Three tactical finger grooves
+            handleShape.quadraticCurveTo(46 * handleScale, -10 * handleScale, 38 * handleScale, -8 * handleScale);
+            handleShape.quadraticCurveTo(31 * handleScale, -12 * handleScale, 25 * handleScale, -9 * handleScale);
+            handleShape.quadraticCurveTo(17 * handleScale, -13 * handleScale, 10 * handleScale, -11 * handleScale);
+            handleShape.lineTo(5 * handleScale, -14 * handleScale);
             handleShape.closePath();
             
-            const handleGeo = new THREE.ExtrudeGeometry(handleShape, { depth: tVal, bevelEnabled: true, bevelThickness: 1, bevelSize: 0.5, bevelSegments: 2 });
-            handleGeo.translate(0, 0, -tVal/2);
+            const handleGeo = new THREE.ExtrudeGeometry(handleShape, { 
+                depth: tVal, 
+                bevelEnabled: true, 
+                bevelThickness: 1.0, 
+                bevelSize: 0.5, 
+                bevelSegments: 2 
+            });
+            handleGeo.translate(0, 0, -tVal / 2);
             
+            // Curved, claw-like blade scaling dynamically
             const bladeShape = new THREE.Shape();
-            const bladeScaleY = wVal / 70;
-            const bladeScaleX = wVal / 70;
-            
-            bladeShape.moveTo(8 * handleScaleX, 75 * handleScaleY);
-            bladeShape.quadraticCurveTo(24 * bladeScaleX, 95 * bladeScaleY, 26 * bladeScaleX, 115 * bladeScaleY);
-            bladeShape.quadraticCurveTo(16 * bladeScaleX, 130 * bladeScaleY, 12 * bladeScaleX, 132 * bladeScaleY);
-            bladeShape.quadraticCurveTo(16 * bladeScaleX, 110 * bladeScaleY, 8 * bladeScaleX, 90 * bladeScaleY);
-            bladeShape.quadraticCurveTo(1 * bladeScaleX, 76 * bladeScaleY, -2 * handleScaleX, 70 * handleScaleY);
+            bladeShape.moveTo(0, 6);
+            // Sharp outer spine curving down
+            bladeShape.quadraticCurveTo(22 * bladeScale, 3 * bladeScale, 37 * bladeScale, -30 * bladeScale);
+            // Concave inner cutting edge
+            bladeShape.quadraticCurveTo(14 * bladeScale, -12 * bladeScale, -3, -6);
+            bladeShape.lineTo(0, 6);
             bladeShape.closePath();
             
-            const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, { depth: tVal * 0.45, bevelEnabled: true, bevelThickness: 0.5, bevelSize: 0.2, bevelSegments: 1 });
-            bladeGeo.translate(0, 0, -tVal * 0.225);
+            const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, { 
+                depth: tVal * 0.45, 
+                bevelEnabled: true, 
+                bevelThickness: 0.6, 
+                bevelSize: 0.2, 
+                bevelSegments: 2 
+            });
+            bladeGeo.translate(58 * handleScale, 0, -tVal * 0.225);
             
-            colorGeometry(ring, 0xffffff);
-            colorGeometry(handleGeo, 0xffffff);
-            colorGeometry(bladeGeo, 0xffffff);
+            // Apply realistic tactical colors
+            colorGeometry(ring, 0x424242);       // Dark carbon/steel ring
+            colorGeometry(handleGeo, 0x1a1a1a);  // Matte black ergonomic handle
+            colorGeometry(bladeGeo, 0xd0d0d0);   // Metallic steel blade
             
             const merged = mergeBufferGeometries([ring, handleGeo, bladeGeo]);
+            
+            // Orient model horizontally to lie flat on the print bed
+            merged.rotateX(-Math.PI / 2);
+            
             return { geo: merged || handleGeo, params: { w: wVal, h: hVal, t: tVal } };
         }
         case 'kelebek': {
@@ -969,51 +990,119 @@ function buildGeo(type, p = {}) {
             const hVal = p.h !== undefined ? p.h : 95;
             const tVal = p.t !== undefined ? p.t : 7;
             
+            // Bowie-style blade with a detailed tang, kick, and swedge
             const bladeShape = new THREE.Shape();
-            const bladeW = 10;
-            bladeShape.moveTo(-bladeW/2, 0);
-            bladeShape.lineTo(bladeW/2, 0);
-            bladeShape.lineTo(bladeW/2, 10);
-            bladeShape.quadraticCurveTo(bladeW/2 - 1, wVal * 0.6, 2, wVal - 10);
-            bladeShape.lineTo(0, wVal);
-            bladeShape.lineTo(-3, wVal - 15);
-            bladeShape.quadraticCurveTo(-bladeW/2 + 2, wVal * 0.5, -bladeW/2, 10);
+            bladeShape.moveTo(-5, -6);
+            bladeShape.lineTo(5, -6);
+            bladeShape.lineTo(5.5, 0); // Kick stop
+            bladeShape.lineTo(5, 8);
+            bladeShape.lineTo(4.2 * (wVal / 85), wVal - 15);
+            bladeShape.quadraticCurveTo(3 * (wVal / 85), wVal - 5, 0, wVal); // Sharp tip
+            bladeShape.quadraticCurveTo(-3 * (wVal / 85), wVal - 15, -4 * (wVal / 85), wVal - 22); // Bowie clip point
+            bladeShape.lineTo(-4, 8);
+            bladeShape.lineTo(-5, -6);
             bladeShape.closePath();
             
-            const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, { depth: tVal * 0.4, bevelEnabled: true, bevelThickness: 0.4, bevelSize: 0.1, bevelSegments: 1 });
+            const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, { 
+                depth: tVal * 0.4, 
+                bevelEnabled: true, 
+                bevelThickness: 0.5, 
+                bevelSize: 0.15, 
+                bevelSegments: 2 
+            });
             bladeGeo.translate(0, 0, -tVal * 0.2);
             
-            const handleW = 6;
-            const handleGapX = 6.5;
+            // Skeletonized handle scales (safe & bite handles)
+            const handleW = 7;
+            const handleGapX = 6.0;
             
-            const leftOuter = new THREE.BoxGeometry(handleW, hVal, tVal * 0.3);
-            leftOuter.translate(-handleGapX, -hVal/2, tVal * 0.32);
-            const leftInner = new THREE.BoxGeometry(handleW, hVal, tVal * 0.3);
-            leftInner.translate(-handleGapX, -hVal/2, -tVal * 0.32);
+            const scaleShape = new THREE.Shape();
+            scaleShape.moveTo(-handleW / 2, 4);
+            scaleShape.lineTo(handleW / 2, 4);
+            scaleShape.lineTo(handleW / 2, -hVal);
+            scaleShape.lineTo(-handleW / 2, -hVal);
+            scaleShape.closePath();
             
-            const rightOuter = new THREE.BoxGeometry(handleW, hVal, tVal * 0.3);
-            rightOuter.translate(handleGapX, -hVal/2, tVal * 0.32);
-            const rightInner = new THREE.BoxGeometry(handleW, hVal, tVal * 0.3);
-            rightInner.translate(handleGapX, -hVal/2, -tVal * 0.32);
+            // Add circular cutouts (skeletonization) to reduce weight and look professional
+            const numHoles = 5;
+            const holeRadius = 1.8;
+            for (let i = 0; i < numHoles; i++) {
+                const holeY = -15 - i * ((hVal - 28) / (numHoles - 1));
+                const holePath = new THREE.Path();
+                holePath.absarc(0, holeY, holeRadius, 0, Math.PI * 2, true);
+                scaleShape.holes.push(holePath);
+            }
             
-            const pinGeo1 = new THREE.CylinderGeometry(1.2, 1.2, tVal * 1.1, 8);
-            pinGeo1.rotateX(Math.PI/2);
-            pinGeo1.translate(-handleGapX, 4, 0);
+            const scaleGeoBase = new THREE.ExtrudeGeometry(scaleShape, { 
+                depth: tVal * 0.3, 
+                bevelEnabled: true, 
+                bevelThickness: 0.3, 
+                bevelSize: 0.1, 
+                bevelSegments: 1 
+            });
+            scaleGeoBase.translate(0, 0, -tVal * 0.15); // Center on Z
             
-            const pinGeo2 = new THREE.CylinderGeometry(1.2, 1.2, tVal * 1.1, 8);
-            pinGeo2.rotateX(Math.PI/2);
-            pinGeo2.translate(handleGapX, 4, 0);
+            // Clone scales for left (safe) and right (bite) handles
+            const leftOuter = scaleGeoBase.clone().translate(-handleGapX, 0, tVal * 0.35);
+            const leftInner = scaleGeoBase.clone().translate(-handleGapX, 0, -tVal * 0.35);
+            const rightOuter = scaleGeoBase.clone().translate(handleGapX, 0, tVal * 0.35);
+            const rightInner = scaleGeoBase.clone().translate(handleGapX, 0, -tVal * 0.35);
             
-            colorGeometry(bladeGeo, 0xffffff);
-            colorGeometry(leftOuter, 0xffffff);
-            colorGeometry(leftInner, 0xffffff);
-            colorGeometry(rightOuter, 0xffffff);
-            colorGeometry(rightInner, 0xffffff);
-            colorGeometry(pinGeo1, 0xffffff);
-            colorGeometry(pinGeo2, 0xffffff);
+            // Bottom spacers that bridge the scales
+            const spacerGeoBase = new THREE.BoxGeometry(handleW, 10, tVal * 0.4);
+            const leftSpacer = spacerGeoBase.clone().translate(-handleGapX, -hVal + 5, 0);
+            const rightSpacer = spacerGeoBase.clone().translate(handleGapX, -hVal + 5, 0);
             
-            const merged = mergeBufferGeometries([bladeGeo, leftOuter, leftInner, rightOuter, rightInner, pinGeo1, pinGeo2]);
-            merged.translate(0, hVal, 0);
+            // Pins, stops, and latch assembly
+            const pinGeo1 = new THREE.CylinderGeometry(1.0, 1.0, tVal * 1.1, 8);
+            pinGeo1.rotateX(Math.PI / 2);
+            pinGeo1.translate(-handleGapX, 0, 0);
+            
+            const pinGeo2 = new THREE.CylinderGeometry(1.0, 1.0, tVal * 1.1, 8);
+            pinGeo2.rotateX(Math.PI / 2);
+            pinGeo2.translate(handleGapX, 0, 0);
+            
+            const tangPin = new THREE.CylinderGeometry(1.0, 1.0, tVal * 1.1, 8);
+            tangPin.rotateX(Math.PI / 2);
+            tangPin.translate(0, 4, 0);
+            
+            const latchBar = new THREE.BoxGeometry(2, 12, tVal * 0.3);
+            latchBar.translate(handleGapX, -hVal - 5, 0);
+            
+            const latchPin = new THREE.CylinderGeometry(0.7, 0.7, tVal * 1.1, 8);
+            latchPin.rotateX(Math.PI / 2);
+            latchPin.translate(handleGapX, -hVal, 0);
+            
+            // Clean up temporary template geometries
+            scaleGeoBase.dispose();
+            spacerGeoBase.dispose();
+            
+            // Colors
+            colorGeometry(bladeGeo, 0xd0d0d0);
+            colorGeometry(leftOuter, 0x1f2937);
+            colorGeometry(leftInner, 0x1f2937);
+            colorGeometry(rightOuter, 0x1f2937);
+            colorGeometry(rightInner, 0x1f2937);
+            colorGeometry(leftSpacer, 0x78909c);
+            colorGeometry(rightSpacer, 0x78909c);
+            colorGeometry(pinGeo1, 0x78909c);
+            colorGeometry(pinGeo2, 0x78909c);
+            colorGeometry(tangPin, 0x78909c);
+            colorGeometry(latchBar, 0x78909c);
+            colorGeometry(latchPin, 0x78909c);
+            
+            const merged = mergeBufferGeometries([
+                bladeGeo, 
+                leftOuter, leftInner, 
+                rightOuter, rightInner, 
+                leftSpacer, rightSpacer, 
+                pinGeo1, pinGeo2, tangPin, 
+                latchBar, latchPin
+            ]);
+            
+            // Orient model horizontally to lie flat on the print bed
+            merged.rotateX(-Math.PI / 2);
+            
             return { geo: merged, params: { w: wVal, h: hVal, t: tVal } };
         }
         default:
@@ -1119,9 +1208,26 @@ function generateTerrainHeights(pos, type, s, w, d, heightScale, roughnessScale)
 }
 
 function mergeBufferGeometries(geos) {
+    let hasIndex = false;
+    let hasNoIndex = false;
+    geos.forEach(g => {
+        if (g.index) hasIndex = true;
+        else hasNoIndex = true;
+    });
+
+    let processedGeos = geos;
+    let needsDispose = false;
+    if (hasIndex && hasNoIndex) {
+        processedGeos = geos.map(g => g.index ? g.toNonIndexed() : g.clone());
+        needsDispose = true;
+    }
+
     try {
         if (typeof THREE.BufferGeometryUtils !== 'undefined' && THREE.BufferGeometryUtils.mergeBufferGeometries) {
-            const merged = THREE.BufferGeometryUtils.mergeBufferGeometries(geos);
+            const merged = THREE.BufferGeometryUtils.mergeBufferGeometries(processedGeos);
+            if (needsDispose) {
+                processedGeos.forEach(g => g.dispose());
+            }
             if (merged) {
                 merged.clearGroups(); // Clear groups to avoid multi-material rendering issues
                 return merged;
@@ -1129,6 +1235,10 @@ function mergeBufferGeometries(geos) {
         }
     } catch (e) {
         console.error('BufferGeometryUtils failed, falling back to manual merge:', e);
+    }
+
+    if (needsDispose) {
+        processedGeos.forEach(g => g.dispose());
     }
     
     // Fallback: manual non-indexed merge if BufferGeometryUtils is not loaded for some reason
