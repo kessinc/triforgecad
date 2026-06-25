@@ -53,6 +53,31 @@ const APP = {
     // History
     history: [], histIdx: -1, MAX_HIST: 80,
     fileHandle: null,
+
+    // Conform Warp state
+    conformWarp: {
+        active: false,
+        drawingCurve: false,
+        brushing: false,
+        isDrawing: false,
+        isBrushing: false,
+        curvePoints: [],
+        curveNormals: [],
+        curvePreview: null,
+        brushTarget: null,
+        drawPlane: null
+    },
+
+    // Magic Stitch state
+    magicStitch: {
+        groupA: [],         // vertex indices for first edge group
+        groupB: [],         // vertex indices for second edge group
+        pickingGroup: 'A',  // 'A' or 'B' - which group we're picking
+        previewHelpers: [], // THREE.Mesh spheres showing selected vertices
+        bridgePreview: null,// THREE.Line showing the bridge path
+        flowPoints: [],     // guide curve points
+        isDrawingFlow: false
+    },
 };
 
 /* ════════════════════════════════════════
@@ -307,7 +332,19 @@ const STANDEE_INFO = {
     cannon:     { category: 'war_props', label: 'TOP', sub: 'Kuşatma Topu', img: 'photo-1599819811279-d5ad9cccf838' },
     crate:      { category: 'war_props', label: 'KASA', sub: 'Nakliye Kasası', img: 'photo-1586528116311-ad8dd3c8310d' },
     anvil:      { category: 'war_props', label: 'ÖRS', sub: 'Demirci Örsü', img: 'photo-1508847154043-be12a62861c1' },
-    wagon:      { category: 'war_props', label: 'VAGON', sub: 'Taşıma Vagonu', img: 'photo-1590487988256-9ed24133863e' }
+    wagon:      { category: 'war_props', label: 'VAGON', sub: 'Taşıma Vagonu', img: 'photo-1590487988256-9ed24133863e' },
+
+    // Game Characters & Monsters
+    mannequin:  { category: 'character', label: 'KARAKTER MANKENİ', sub: 'Eğitim Mankeni', img: 'photo-1534126511673-b6899657816a' },
+    knight:     { category: 'character', label: 'ŞÖVALYE', sub: 'Demir Muhafız', img: 'photo-1599707367072-cd6ada2bc375' },
+    wizard:     { category: 'character', label: 'BÜYÜCÜ', sub: 'Kadim Simyacı', img: 'photo-1519074002996-a69e7ac46a42' },
+    cyborg:     { category: 'character', label: 'SİBER SAVAŞÇI', sub: 'Cyborg-X900', img: 'photo-1589254065878-42c9da997008' },
+    ninja:      { category: 'character', label: 'NİNJA', sub: 'Gölge Suikastçısı', img: 'photo-1555597673-b21d5c935865' },
+    ranger:     { category: 'character', label: 'KORUCU', sub: 'Galaksi Gezgini', img: 'photo-1614728894747-a83421e2b9c9' },
+    slime:      { category: 'character', label: 'BALÇIK (SLIME)', sub: 'Zehirli Balçık', img: 'photo-1576086213369-97a306d36557' },
+    golem:      { category: 'character', label: 'GOLEM', sub: 'Kaya Devi', img: 'photo-1605721911519-3dfeb3be25e7' },
+    beholder:   { category: 'character', label: 'GÖZCÜ (BEHOLDER)', sub: 'Çok Gözlü Canavar', img: 'photo-1509248961158-e54f6934749c' },
+    dragon:     { category: 'character', label: 'KADİM EJDERHA', sub: 'Ateş Püskürten', img: 'photo-1618005182384-a83a8bd57fbe' }
 };
 
 
@@ -336,6 +373,10 @@ function buildPedestalGeometry(type) {
             baseColor = 0x37474f;
             rimColor = 0xb0bec5;
             gemColor = 0x90a4ae;
+        } else if (info.category === 'character') {
+            baseColor = 0x1a0933;
+            rimColor = 0xe040fb;
+            gemColor = 0x00e5ff;
         } else {
             baseColor = 0x2e1c0c;
             rimColor = 0xcd7f32;
@@ -733,6 +774,61 @@ const FIGURINE_OUTLINES = {
         [-8,2.5],[-7,5],[-6,6],[-6,11],[-7,11],[-7,13],[7,13],[7,11],[6,11],[6,6],
         [7,5],[8,2.5],[6,1.5],[4,2.5],[3,3.5],[5,4.5],[5,6],[-5,6],[-5,4.5],
         [-3,3.5],[-4,2.5],[-6,1.5]
+    ],
+
+    // ─── Karakterler & Canavarlar ───
+    mannequin: [
+        [-2.5,0],[-3,3],[-3.5,6],[-4,9],[-4,13],[-5.5,13],[-5.5,15.5],[-4.5,15.5],[-4.5,17],
+        [-6.5,17],[-6.5,19],[-5.5,20],[-4,20],[-4,23.5],[-2.5,23.5],[-2,25],
+        [2,25],[2.5,23.5],[4,23.5],[4,20],[5.5,20],[6.5,19],[6.5,17],
+        [4.5,17],[4.5,15.5],[5.5,15.5],[5.5,13],[4,13],[4,9],[3.5,6],[3,3],[2.5,0]
+    ],
+    knight: [
+        [-3,0],[-3.5,3],[-4,6],[-4.5,9],[-5,12],[-7,12],[-8.5,14],[-9,17],[-7,17.5],[-5,18.5],
+        [-4,21],[-3,23.5],[-1.5,25.5],[0,26.5],[1.5,25.5],[3,23.5],[4,21],[5,18.5],
+        [7,17.5],[9,17],[8.5,14],[7,12],[5,12],[4.5,9],[4,6],[3.5,3],[3,0]
+    ],
+    wizard: [
+        [-5.5,0],[-5.5,4],[-5,8],[-4.5,11],[-4,13],[-6.5,15],[-8.5,14],[-7.5,17],[-5,17.5],
+        [-3.5,20],[-5,21.5],[-6.5,22],[-5.5,23],[-3.5,24.5],[-1.5,27.5],[0,28.5],[1.5,27.5],
+        [3.5,24.5],[5.5,23],[6.5,22],[5,21.5],[3.5,20],[5,17.5],[7.5,17],[8.5,14],[6.5,15],
+        [4,13],[4.5,11],[5,8],[5.5,4],[5.5,0]
+    ],
+    cyborg: [
+        [-3.5,0],[-4,3.5],[-4.5,7],[-5,10.5],[-5,13.5],[-7,13.5],[-8.5,15],[-9,17.5],[-7.5,19],
+        [-6.5,19],[-5.5,21],[-4.5,21],[-3.5,24.5],[-2,26],[2,26],[3.5,24.5],[4.5,21],
+        [5.5,21],[6.5,19],[7.5,19],[9,17.5],[8.5,15],[7,13.5],[5,13.5],[5,10.5],[4.5,7],[4,3.5],[3.5,0]
+    ],
+    ninja: [
+        [-2.5,0],[-3,3.5],[-3.5,7],[-4,10],[-4,13.5],[-6,13.5],[-7.5,15],[-8.5,17.5],[-7.5,19],
+        [-5,19.5],[-4,22],[-2.5,24.5],[0,25.5],[2.5,24.5],[4,22],[5,19.5],[7.5,19],
+        [8.5,17.5],[7.5,15],[6,13.5],[4,13.5],[4,10],[3.5,7],[3,3.5],[2.5,0]
+    ],
+    ranger: [
+        [-3,0],[-3.5,3.5],[-4,7],[-4.5,10],[-5,13],[-7,13],[-8.5,14.5],[-9,17],[-8,19],
+        [-6,19.5],[-5,21],[-4,23.5],[-2,25.5],[0,26.5],[2,25.5],[4,23.5],[5,21],[6,19.5],
+        [8,19],[9,17],[8.5,14.5],[7,13],[5,13],[4.5,10],[4,7],[3.5,3.5],[3,0]
+    ],
+    slime: [
+        [-7.5,0],[-8,2],[-8.5,4.5],[-8.5,7.5],[-7.5,10.5],[-5.5,13.5],[-3,15.5],[0,16.5],
+        [3,15.5],[5.5,13.5],[7.5,10.5],[8.5,7.5],[8.5,4.5],[8,2],[7.5,0]
+    ],
+    golem: [
+        [-7,0],[-8,3],[-8.5,7],[-9,11],[-9,14],[-11,14],[-12,17],[-11.5,20.5],[-9.5,21.5],
+        [-7.5,21.5],[-6,23.5],[-4.5,23.5],[-3,25.5],[0,26.5],[3,25.5],[4.5,23.5],[6,23.5],
+        [7.5,21.5],[9.5,21.5],[11.5,20.5],[12,17],[11,14],[9,14],[9,11],[8.5,7],[8,3],[7,0]
+    ],
+    beholder: [
+        [-6.5,0],[-8.5,2],[-9.5,5],[-10,9],[-9,12],[-11.5,14],[-13,16.5],[-11.5,18.5],
+        [-8.5,17],[-6.5,20.5],[-8.5,23],[-8.5,25.5],[-6.5,24.5],[-4.5,22.5],[-3,24.5],[-3,27.5],
+        [-1.5,26.5],[0,28.5],[1.5,26.5],[3,27.5],[3,24.5],[4.5,22.5],[6.5,24.5],[8.5,25.5],
+        [8.5,23],[6.5,20.5],[8.5,17],[11.5,18.5],[13,16.5],[11.5,14],[9,12],[10,9],[9.5,5],[8.5,2],[6.5,0]
+    ],
+    dragon: [
+        [-6.5,0],[-8.5,3],[-10,7.5],[-11.5,12.5],[-14.5,12.5],[-18.5,16.5],[-16.5,21.5],[-12.5,19.5],
+        [-10.5,16.5],[-9.5,19.5],[-7.5,22.5],[-5,24.5],[-2.5,26.5],[0,27.5],[3.5,28.5],[6.5,27.5],
+        [8.5,24.5],[9.5,21.5],[11.5,19.5],[13.5,16.5],[17.5,18.5],[19.5,15.5],[16.5,11.5],[12.5,11.5],
+        [10.5,7.5],[8.5,3],[6.5,0]
     ]
 };
 
@@ -882,44 +978,8 @@ function buildGeo(type, p = {}) {
             return { geo: new THREE.ExtrudeGeometry(shape, { depth: p.d||s, bevelEnabled: false }), params:{ r:p.r||s/2, d:p.d||s, sides:sides } };
         }
         case 'mannequin': {
-            const parts = [];
-            // Head
-            const head = new THREE.SphereGeometry(s*0.11, 16, 16); head.translate(0, s*0.75, 0); colorGeometry(head, 0xffcc99); parts.push(head);
-            const visor = new THREE.BoxGeometry(s*0.14, s*0.06, s*0.08); visor.translate(0, s*0.77, s*0.07); colorGeometry(visor, 0x00bcd4); parts.push(visor);
-            const helmet = new THREE.CylinderGeometry(s*0.12, s*0.13, s*0.1, 16); helmet.translate(0, s*0.81, 0); colorGeometry(helmet, 0x3a3a3a); parts.push(helmet);
-            
-            // Neck
-            const neck = new THREE.CylinderGeometry(s*0.05, s*0.06, s*0.08, 12); neck.translate(0, s*0.68, 0); colorGeometry(neck, 0xffcc99); parts.push(neck);
-            
-            // Torso (Armor Plates)
-            const chest = new THREE.BoxGeometry(s*0.28, s*0.22, s*0.18); chest.translate(0, s*0.56, 0); colorGeometry(chest, 0x212121); parts.push(chest);
-            const chestEmblem = new THREE.BoxGeometry(s*0.08, s*0.08, s*0.02); chestEmblem.translate(0, s*0.57, s*0.09); colorGeometry(chestEmblem, 0xff1744); parts.push(chestEmblem);
-            const abs = new THREE.BoxGeometry(s*0.22, s*0.15, s*0.14); abs.translate(0, s*0.4, 0); colorGeometry(abs, 0x3a3a3a); parts.push(abs);
-            
-            // Shoulders & Arms
-            const shoulderL = new THREE.SphereGeometry(s*0.07, 12, 12); shoulderL.translate(-s*0.18, s*0.6, 0); colorGeometry(shoulderL, 0x3a3a3a); parts.push(shoulderL);
-            const shoulderR = new THREE.SphereGeometry(s*0.07, 12, 12); shoulderR.translate(s*0.18, s*0.6, 0); colorGeometry(shoulderR, 0x3a3a3a); parts.push(shoulderR);
-            const bicepL = new THREE.CylinderGeometry(s*0.04, s*0.04, s*0.15, 8); bicepL.translate(-s*0.18, s*0.48, 0); colorGeometry(bicepL, 0x424242); parts.push(bicepL);
-            const bicepR = new THREE.CylinderGeometry(s*0.04, s*0.04, s*0.15, 8); bicepR.translate(s*0.18, s*0.48, 0); colorGeometry(bicepR, 0x424242); parts.push(bicepR);
-            const elbowL = new THREE.SphereGeometry(s*0.045, 8, 8); elbowL.translate(-s*0.18, s*0.39, 0); colorGeometry(elbowL, 0x3a3a3a); parts.push(elbowL);
-            const elbowR = new THREE.SphereGeometry(s*0.045, 8, 8); elbowR.translate(s*0.18, s*0.39, 0); colorGeometry(elbowR, 0x3a3a3a); parts.push(elbowR);
-            const forearmL = new THREE.CylinderGeometry(s*0.035, s*0.03, s*0.14, 8); forearmL.translate(-s*0.18, s*0.3, 0); colorGeometry(forearmL, 0x424242); parts.push(forearmL);
-            const forearmR = new THREE.CylinderGeometry(s*0.035, s*0.03, s*0.14, 8); forearmR.translate(s*0.18, s*0.3, 0); colorGeometry(forearmR, 0x424242); parts.push(forearmR);
-            
-            // Hips & Legs
-            const hips = new THREE.BoxGeometry(s*0.24, s*0.08, s*0.16); hips.translate(0, s*0.31, 0); colorGeometry(hips, 0x212121); parts.push(hips);
-            const thighL = new THREE.CylinderGeometry(s*0.06, s*0.05, s*0.2, 12); thighL.translate(-s*0.09, s*0.2, 0); colorGeometry(thighL, 0x424242); parts.push(thighL);
-            const thighR = new THREE.CylinderGeometry(s*0.06, s*0.05, s*0.2, 12); thighR.translate(s*0.09, s*0.2, 0); colorGeometry(thighR, 0x424242); parts.push(thighR);
-            const kneeL = new THREE.SphereGeometry(s*0.05, 10, 10); kneeL.translate(-s*0.09, s*0.09, 0); colorGeometry(kneeL, 0x3a3a3a); parts.push(kneeL);
-            const kneeR = new THREE.SphereGeometry(s*0.05, 10, 10); kneeR.translate(s*0.09, s*0.09, 0); colorGeometry(kneeR, 0x3a3a3a); parts.push(kneeR);
-            const shinL = new THREE.CylinderGeometry(s*0.045, s*0.035, s*0.18, 10); shinL.translate(-s*0.09, -s*0.01, 0); colorGeometry(shinL, 0x424242); parts.push(shinL);
-            const shinR = new THREE.CylinderGeometry(s*0.045, s*0.035, s*0.18, 10); shinR.translate(s*0.09, -s*0.01, 0); colorGeometry(shinR, 0x424242); parts.push(shinR);
-            const footL = new THREE.BoxGeometry(s*0.07, s*0.05, s*0.14); footL.translate(-s*0.09, -s*0.115, s*0.03); colorGeometry(footL, 0x1a1a1a); parts.push(footL);
-            const footR = new THREE.BoxGeometry(s*0.07, s*0.05, s*0.14); footR.translate(s*0.09, -s*0.115, s*0.03); colorGeometry(footR, 0x1a1a1a); parts.push(footR);
-            
-            const merged = mergeBufferGeometries(parts);
-            merged.translate(0, s*0.14, 0);
-            return { geo: merged, params: {} };
+            const geo = buildObjectStandeeGeometry('mannequin');
+            return { geo: geo, params: {} };
         }
         case 'tree': {
             const trunkGeo = new THREE.CylinderGeometry(s/10, s/10, s/2, 8); trunkGeo.translate(0, s/4, 0);
@@ -1002,438 +1062,17 @@ function buildGeo(type, p = {}) {
             const geo = buildObjectStandeeGeometry('windmill');
             return { geo: geo, params: {} };
         }
-        case 'knight': {
-            const parts = [];
-            // Sabatons (Boots)
-            const footL = new THREE.BoxGeometry(s*0.08, s*0.05, s*0.16); footL.translate(-s*0.09, -s*0.075, s*0.03); colorGeometry(footL, 0x616161); parts.push(footL);
-            const footR = new THREE.BoxGeometry(s*0.08, s*0.05, s*0.16); footR.translate(s*0.09, -s*0.075, s*0.03); colorGeometry(footR, 0x616161); parts.push(footR);
-            // Greaves (Shins) with knee cops
-            const shinL = new THREE.CylinderGeometry(s*0.045, s*0.035, s*0.18, 8); shinL.translate(-s*0.09, s*0.03, 0); colorGeometry(shinL, 0x757575); parts.push(shinL);
-            const shinR = new THREE.CylinderGeometry(s*0.045, s*0.035, s*0.18, 8); shinR.translate(s*0.09, s*0.03, 0); colorGeometry(shinR, 0x757575); parts.push(shinR);
-            const kneeL = new THREE.SphereGeometry(s*0.04, 8, 8); kneeL.translate(-s*0.09, s*0.11, 0.02); colorGeometry(kneeL, 0xffd700); parts.push(kneeL);
-            const kneeR = new THREE.SphereGeometry(s*0.04, 8, 8); kneeR.translate(s*0.09, s*0.11, 0.02); colorGeometry(kneeR, 0xffd700); parts.push(kneeR);
-            // Cuisses (Thighs)
-            const thighL = new THREE.CylinderGeometry(s*0.055, s*0.045, s*0.18, 8); thighL.translate(-s*0.09, s*0.19, 0); colorGeometry(thighL, 0x757575); parts.push(thighL);
-            const thighR = new THREE.CylinderGeometry(s*0.055, s*0.045, s*0.18, 8); thighR.translate(s*0.09, s*0.19, 0); colorGeometry(thighR, 0x757575); parts.push(thighR);
-            // Tassets / Hip skirt plates
-            const hips = new THREE.BoxGeometry(s*0.26, s*0.08, s*0.17); hips.translate(0, s*0.28, 0); colorGeometry(hips, 0x424242); parts.push(hips);
-            const tassetL = new THREE.BoxGeometry(s*0.1, s*0.1, s*0.04); tassetL.translate(-s*0.07, s*0.23, s*0.08); colorGeometry(tassetL, 0x616161); parts.push(tassetL);
-            const tassetR = new THREE.BoxGeometry(s*0.1, s*0.1, s*0.04); tassetR.translate(s*0.07, s*0.23, s*0.08); colorGeometry(tassetR, 0x616161); parts.push(tassetR);
-            
-            // Torso (Breastplate) with chest shield emblem
-            const torso = new THREE.CylinderGeometry(s*0.14, s*0.12, s*0.25, 12); torso.translate(0, s*0.42, 0); torso.scale(1.2, 1, 0.85); colorGeometry(torso, 0x757575); parts.push(torso);
-            const chestPlate = new THREE.BoxGeometry(s*0.22, s*0.18, s*0.04); chestPlate.translate(0, s*0.45, s*0.08); colorGeometry(chestPlate, 0x9e9e9e); parts.push(chestPlate);
-            // Red cross heraldry on chest
-            const crossH = new THREE.BoxGeometry(s*0.04, s*0.14, s*0.01); crossH.translate(0, s*0.45, s*0.102); colorGeometry(crossH, 0xd50000); parts.push(crossH);
-            const crossV = new THREE.BoxGeometry(s*0.14, s*0.04, s*0.01); crossV.translate(0, s*0.45, s*0.102); colorGeometry(crossV, 0xd50000); parts.push(crossV);
-            
-            // Shoulders & Arms (Detailed spaulders & gauntlets)
-            const spaulderL = new THREE.SphereGeometry(s*0.065, 10, 10); spaulderL.translate(-s*0.18, s*0.52, 0); colorGeometry(spaulderL, 0xffd700); parts.push(spaulderL);
-            const spaulderR = new THREE.SphereGeometry(s*0.065, 10, 10); spaulderR.translate(s*0.18, s*0.52, 0); colorGeometry(spaulderR, 0xffd700); parts.push(spaulderR);
-            const armL = new THREE.CylinderGeometry(s*0.04, s*0.035, s*0.2, 8); armL.translate(-s*0.18, s*0.4, 0); colorGeometry(armL, 0x757575); parts.push(armL);
-            const armR = new THREE.CylinderGeometry(s*0.04, s*0.035, s*0.2, 8); armR.translate(s*0.18, s*0.4, 0); colorGeometry(armR, 0x757575); parts.push(armR);
-            const gloveL = new THREE.BoxGeometry(s*0.045, s*0.05, s*0.045); gloveL.translate(-s*0.18, s*0.28, 0); colorGeometry(gloveL, 0x424242); parts.push(gloveL);
-            const gloveR = new THREE.BoxGeometry(s*0.045, s*0.05, s*0.045); gloveR.translate(s*0.18, s*0.28, 0); colorGeometry(gloveR, 0x424242); parts.push(gloveR);
-            
-            // Helmet (Great helm style with brass visor and ventilation grill)
-            const head = new THREE.SphereGeometry(s*0.09, 10, 10); head.translate(0, s*0.61, 0); colorGeometry(head, 0xffcc99); parts.push(head);
-            const helmBase = new THREE.CylinderGeometry(s*0.11, s*0.11, s*0.14, 12); helmBase.translate(0, s*0.63, 0); colorGeometry(helmBase, 0x9e9e9e); parts.push(helmBase);
-            const helmVisor = new THREE.BoxGeometry(s*0.13, s*0.06, s*0.11); helmVisor.translate(0, s*0.65, 0.03); colorGeometry(helmVisor, 0xffd700); parts.push(helmVisor);
-            // Eye slot slit
-            const eyeSlit = new THREE.BoxGeometry(s*0.1, s*0.015, s*0.02); eyeSlit.translate(0, s*0.67, s*0.086); colorGeometry(eyeSlit, 0x212121); parts.push(eyeSlit);
-            // Ventilation grill lines
-            const grillL = new THREE.BoxGeometry(s*0.01, s*0.03, s*0.02); grillL.translate(-s*0.03, s*0.63, s*0.086); colorGeometry(grillL, 0x212121); parts.push(grillL);
-            const grillR = new THREE.BoxGeometry(s*0.01, s*0.03, s*0.02); grillR.translate(s*0.03, s*0.63, s*0.086); colorGeometry(grillR, 0x212121); parts.push(grillR);
-            
-            // Flowing plume
-            const plume1 = new THREE.ConeGeometry(s*0.05, s*0.18, 6); plume1.rotateX(-0.5); plume1.translate(0, s*0.77, -s*0.05); colorGeometry(plume1, 0xd50000); parts.push(plume1);
-            const plume2 = new THREE.ConeGeometry(s*0.035, s*0.14, 6); plume2.rotateX(-0.8); plume2.translate(0, s*0.74, -s*0.14); colorGeometry(plume2, 0xd50000); parts.push(plume2);
-            
-            // Kite Shield in Left Arm
-            const shieldBack = new THREE.BoxGeometry(s*0.02, s*0.3, s*0.2); shieldBack.translate(-s*0.25, s*0.4, s*0.08); colorGeometry(shieldBack, 0x3e2723); parts.push(shieldBack);
-            const shieldSteel = new THREE.BoxGeometry(s*0.03, s*0.28, s*0.18); shieldSteel.translate(-s*0.252, s*0.4, s*0.08); colorGeometry(shieldSteel, 0xb0bec5); parts.push(shieldSteel);
-            const shieldGoldBorder = new THREE.BoxGeometry(s*0.034, s*0.3, s*0.02); shieldGoldBorder.translate(-s*0.254, s*0.4, s*0.17); colorGeometry(shieldGoldBorder, 0xffd700); parts.push(shieldGoldBorder);
-            const shieldGoldBorderR = new THREE.BoxGeometry(s*0.034, s*0.3, s*0.02); shieldGoldBorderR.translate(-s*0.254, s*0.4, -s*0.01); colorGeometry(shieldGoldBorderR, 0xffd700); parts.push(shieldGoldBorderR);
-            const shieldCross = new THREE.BoxGeometry(s*0.036, s*0.24, s*0.03); shieldCross.translate(-s*0.256, s*0.4, s*0.08); colorGeometry(shieldCross, 0xd50000); parts.push(shieldCross);
-            
-            // Sword in Right Hand (Intricate Longsword)
-            const swordBlade = new THREE.BoxGeometry(s*0.03, s*0.4, s*0.012); swordBlade.translate(s*0.24, s*0.52, s*0.15); colorGeometry(swordBlade, 0xe0e0e0); parts.push(swordBlade);
-            // Flamberge style wavy center
-            const swordCenter = new THREE.BoxGeometry(s*0.008, s*0.42, s*0.018); swordCenter.translate(s*0.24, s*0.52, s*0.15); colorGeometry(swordCenter, 0x9e9e9e); parts.push(swordCenter);
-            const swordGuard = new THREE.BoxGeometry(s*0.14, s*0.02, s*0.03); swordGuard.translate(s*0.24, s*0.32, s*0.15); colorGeometry(swordGuard, 0xffd700); parts.push(swordGuard);
-            const swordGrip = new THREE.CylinderGeometry(s*0.015, s*0.015, s*0.09, 8); swordGrip.translate(s*0.24, s*0.265, s*0.15); colorGeometry(swordGrip, 0x3e2723); parts.push(swordGrip);
-            const swordPommel = new THREE.SphereGeometry(s*0.02, 8, 8); swordPommel.translate(s*0.24, s*0.21, s*0.15); colorGeometry(swordPommel, 0xffd700); parts.push(swordPommel);
-            
-            const merged = mergeBufferGeometries(parts);
-            merged.translate(0, s*0.1, 0);
-            return { geo: merged, params: {} };
-        }
-        case 'wizard': {
-            const parts = [];
-            // Shoes / Slippers
-            const shoeL = new THREE.BoxGeometry(s*0.07, s*0.04, s*0.12); shoeL.translate(-s*0.09, -s*0.06, s*0.05); colorGeometry(shoeL, 0x3e2723); parts.push(shoeL);
-            const shoeR = new THREE.BoxGeometry(s*0.07, s*0.04, s*0.12); shoeR.translate(s*0.09, -s*0.06, s*0.05); colorGeometry(shoeR, 0x3e2723); parts.push(shoeR);
-            
-            // Robe Base
-            const robeBase = new THREE.ConeGeometry(s*0.26, s*0.62, 12); robeBase.translate(0, s*0.28, 0); colorGeometry(robeBase, 0x4a148c); parts.push(robeBase);
-            // Sleeve Left & Right with gold trims
-            const sleeveL = new THREE.CylinderGeometry(s*0.06, s*0.08, s*0.2, 8); sleeveL.rotateZ(0.4); sleeveL.translate(-s*0.16, s*0.44, s*0.04); colorGeometry(sleeveL, 0x4a148c); parts.push(sleeveL);
-            const sleeveR = new THREE.CylinderGeometry(s*0.06, s*0.08, s*0.2, 8); sleeveR.rotateZ(-0.4); sleeveR.translate(s*0.16, s*0.44, s*0.04); colorGeometry(sleeveR, 0x4a148c); parts.push(sleeveR);
-            const trimL = new THREE.TorusGeometry(s*0.076, s*0.01, 8, 16); trimL.rotateX(Math.PI/2); trimL.rotateZ(0.4); trimL.translate(-s*0.20, s*0.35, s*0.05); colorGeometry(trimL, 0xffd700); parts.push(trimL);
-            const trimR = new THREE.TorusGeometry(s*0.076, s*0.01, 8, 16); trimR.rotateX(Math.PI/2); trimR.rotateZ(-0.4); trimR.translate(s*0.20, s*0.35, s*0.05); colorGeometry(trimR, 0xffd700); parts.push(trimR);
-            
-            // Gold Trim Belt
-            const robeBelt = new THREE.CylinderGeometry(s*0.205, s*0.21, s*0.04, 12); robeBelt.translate(0, s*0.38, 0); colorGeometry(robeBelt, 0xffd700); parts.push(robeBelt);
-            
-            // Spellbook hanging from belt
-            const bookCover = new THREE.BoxGeometry(s*0.08, s*0.11, s*0.03); bookCover.translate(-s*0.18, s*0.3, s*0.06); colorGeometry(bookCover, 0x5d4037); parts.push(bookCover);
-            const bookPages = new THREE.BoxGeometry(s*0.07, s*0.1, s*0.02); bookPages.translate(-s*0.18, s*0.3, s*0.07); colorGeometry(bookPages, 0xfff9c4); parts.push(bookPages);
-            const bookStrap = new THREE.BoxGeometry(s*0.01, s*0.12, s*0.04); bookStrap.translate(-s*0.18, s*0.3, s*0.06); colorGeometry(bookStrap, 0xffd700); parts.push(bookStrap);
-            
-            // Hands
-            const handL = new THREE.SphereGeometry(s*0.035, 8, 8); handL.translate(-s*0.21, s*0.33, s*0.08); colorGeometry(handL, 0xffcc99); parts.push(handL);
-            const handR = new THREE.SphereGeometry(s*0.035, 8, 8); handR.translate(s*0.21, s*0.33, s*0.08); colorGeometry(handR, 0xffcc99); parts.push(handR);
-            
-            // Head
-            const head = new THREE.SphereGeometry(s*0.1, 10, 10); head.translate(0, s*0.62, 0); colorGeometry(head, 0xffcc99); parts.push(head);
-            
-            // Beard (Multiple flowing parts for realism)
-            const beardCenter = new THREE.ConeGeometry(s*0.08, s*0.25, 4); beardCenter.translate(0, s*0.5, s*0.08); colorGeometry(beardCenter, 0xf5f5f5); parts.push(beardCenter);
-            const beardL = new THREE.ConeGeometry(s*0.04, s*0.18, 4); beardL.rotateZ(-0.2); beardL.translate(-s*0.04, s*0.52, s*0.08); colorGeometry(beardL, 0xf5f5f5); parts.push(beardL);
-            const beardR = new THREE.ConeGeometry(s*0.04, s*0.18, 4); beardR.rotateZ(0.2); beardR.translate(s*0.04, s*0.52, s*0.08); colorGeometry(beardR, 0xf5f5f5); parts.push(beardR);
-            
-            // Hat (Brim and Pointy Cone)
-            const hatBrim = new THREE.CylinderGeometry(s*0.22, s*0.22, s*0.02, 16); hatBrim.rotateX(0.05); hatBrim.translate(0, s*0.68, 0); colorGeometry(hatBrim, 0x311b92); parts.push(hatBrim);
-            const hatCone1 = new THREE.ConeGeometry(s*0.14, s*0.3, 10); hatCone1.translate(0, s*0.82, -s*0.02); colorGeometry(hatCone1, 0x311b92); parts.push(hatCone1);
-            const hatCone2 = new THREE.ConeGeometry(s*0.08, s*0.2, 8); hatCone2.rotateX(-0.3); hatCone2.translate(0, s*0.98, -s*0.06); colorGeometry(hatCone2, 0x311b92); parts.push(hatCone2);
-            const hatBuckle = new THREE.BoxGeometry(s*0.06, s*0.04, s*0.02); hatBuckle.translate(0, s*0.7, s*0.13); colorGeometry(hatBuckle, 0xffd700); parts.push(hatBuckle);
-            
-            // Staff & Magic Orb (Held in Right Hand)
-            const staffShaft = new THREE.CylinderGeometry(s*0.015, s*0.015, s*0.75, 8); staffShaft.rotateX(-0.1); staffShaft.translate(s*0.2, s*0.36, s*0.08); colorGeometry(staffShaft, 0x5d4037); parts.push(staffShaft);
-            const staffGemHolder = new THREE.TorusGeometry(s*0.045, s*0.01, 8, 16); staffGemHolder.translate(s*0.2, s*0.75, s*0.12); colorGeometry(staffGemHolder, 0xffd700); parts.push(staffGemHolder);
-            const staffOrb = new THREE.SphereGeometry(s*0.038, 8, 8); staffOrb.translate(s*0.2, s*0.75, s*0.12); colorGeometry(staffOrb, 0x00e5ff); parts.push(staffOrb);
-            
-            const merged = mergeBufferGeometries(parts);
-            return { geo: merged, params: {} };
-        }
-        case 'cyborg': {
-            const parts = [];
-            // Feet / Mechanical Boots (Carbon/Steel texture)
-            const footL = new THREE.BoxGeometry(s*0.08, s*0.05, s*0.16); footL.translate(-s*0.09, -s*0.075, s*0.03); colorGeometry(footL, 0x1a1a1a); parts.push(footL);
-            const footR = new THREE.BoxGeometry(s*0.08, s*0.05, s*0.16); footR.translate(s*0.09, -s*0.075, s*0.03); colorGeometry(footR, 0x1a1a1a); parts.push(footR);
-            // Mechanical Legs (Segmented, hydraulic pistons)
-            const shinL = new THREE.CylinderGeometry(s*0.035, s*0.035, s*0.16, 8); shinL.translate(-s*0.09, s*0.03, 0); colorGeometry(shinL, 0x757575); parts.push(shinL);
-            const shinR = new THREE.CylinderGeometry(s*0.035, s*0.035, s*0.16, 8); shinR.translate(s*0.09, s*0.03, 0); colorGeometry(shinR, 0x757575); parts.push(shinR);
-            const pistonL = new THREE.CylinderGeometry(s*0.01, s*0.01, s*0.18, 6); pistonL.translate(-s*0.12, s*0.03, -s*0.02); colorGeometry(pistonL, 0xe0e0e0); parts.push(pistonL);
-            const pistonR = new THREE.CylinderGeometry(s*0.01, s*0.01, s*0.18, 6); pistonR.translate(s*0.12, s*0.03, -s*0.02); colorGeometry(pistonR, 0xe0e0e0); parts.push(pistonR);
-            const thighL = new THREE.CylinderGeometry(s*0.05, s*0.045, s*0.18, 8); thighL.translate(-s*0.09, s*0.18, 0); colorGeometry(thighL, 0x1a1a1a); parts.push(thighL);
-            const thighR = new THREE.CylinderGeometry(s*0.05, s*0.045, s*0.18, 8); thighR.translate(s*0.09, s*0.18, 0); colorGeometry(thighR, 0x1a1a1a); parts.push(thighR);
-            // Hips
-            const hips = new THREE.BoxGeometry(s*0.24, s*0.08, s*0.15); hips.translate(0, s*0.28, 0); colorGeometry(hips, 0x1a1a1a); parts.push(hips);
-            
-            // Chest / Core (Heavy cybernetic chest armor with wire harnesses)
-            const torso = new THREE.BoxGeometry(s*0.28, s*0.24, s*0.18); torso.translate(0, s*0.44, 0); colorGeometry(torso, 0x1a1a1a); parts.push(torso);
-            const powerCore = new THREE.CylinderGeometry(s*0.05, s*0.05, s*0.04, 12); powerCore.rotateX(Math.PI/2); powerCore.translate(0, s*0.46, s*0.09); colorGeometry(powerCore, 0x00e676); parts.push(powerCore);
-            
-            // Cable conduits connecting shoulder to chest
-            const cableL = new THREE.CylinderGeometry(s*0.012, s*0.012, s*0.16, 6); cableL.rotateZ(0.6); cableL.translate(-s*0.1, s*0.48, s*0.06); colorGeometry(cableL, 0xffd700); parts.push(cableL);
-            const cableR = new THREE.CylinderGeometry(s*0.012, s*0.012, s*0.16, 6); cableR.rotateZ(-0.6); cableR.translate(s*0.1, s*0.48, s*0.06); colorGeometry(cableR, 0xffd700); parts.push(cableR);
-
-            // Right arm (Robotic segmented)
-            const shoulderR = new THREE.SphereGeometry(s*0.065, 8, 8); shoulderR.translate(s*0.17, s*0.51, 0); colorGeometry(shoulderR, 0x757575); parts.push(shoulderR);
-            const armR = new THREE.CylinderGeometry(s*0.035, s*0.03, s*0.2, 8); armR.translate(s*0.17, s*0.39, 0); colorGeometry(armR, 0xe0e0e0); parts.push(armR);
-            const clawR1 = new THREE.BoxGeometry(s*0.015, s*0.06, s*0.015); clawR1.translate(s*0.15, s*0.27, s*0.02); colorGeometry(clawR1, 0x1a1a1a); parts.push(clawR1);
-            const clawR2 = new THREE.BoxGeometry(s*0.015, s*0.06, s*0.015); clawR2.translate(s*0.19, s*0.27, s*0.02); colorGeometry(clawR2, 0x1a1a1a); parts.push(clawR2);
-            
-            // Left arm (Heavy Gatling Arm Cannon)
-            const shoulderL = new THREE.SphereGeometry(s*0.065, 8, 8); shoulderL.translate(-s*0.17, s*0.51, 0); colorGeometry(shoulderL, 0x757575); parts.push(shoulderL);
-            const gunBody = new THREE.CylinderGeometry(s*0.06, s*0.05, s*0.26, 8); gunBody.translate(-s*0.17, s*0.36, 0.05); colorGeometry(gunBody, 0x424242); parts.push(gunBody);
-            const gunBarrel = new THREE.CylinderGeometry(s*0.03, s*0.03, s*0.1, 8); gunBarrel.translate(-s*0.17, s*0.22, 0.05); colorGeometry(gunBarrel, 0x00e676); parts.push(gunBarrel);
-            
-            // Jetpack boosters on the back
-            const jetpack = new THREE.BoxGeometry(s*0.22, s*0.2, s*0.08); jetpack.translate(0, s*0.44, -s*0.13); colorGeometry(jetpack, 0x424242); parts.push(jetpack);
-            const thrusterL = new THREE.CylinderGeometry(s*0.04, s*0.05, s*0.12, 8); thrusterL.translate(-s*0.08, s*0.36, -s*0.14); colorGeometry(thrusterL, 0xe0e0e0); parts.push(thrusterL);
-            const thrusterR = new THREE.CylinderGeometry(s*0.04, s*0.05, s*0.12, 8); thrusterR.translate(s*0.08, s*0.36, -s*0.14); colorGeometry(thrusterR, 0xe0e0e0); parts.push(thrusterR);
-            const flameL = new THREE.ConeGeometry(s*0.03, s*0.08, 6); flameL.translate(-s*0.08, s*0.28, -s*0.14); colorGeometry(flameL, 0xff1744); parts.push(flameL);
-            const flameR = new THREE.ConeGeometry(s*0.03, s*0.08, 6); flameR.translate(s*0.08, s*0.28, -s*0.14); colorGeometry(flameR, 0xff1744); parts.push(flameR);
-
-            // Robotic Head with side antenna and lens visor
-            const head = new THREE.BoxGeometry(s*0.14, s*0.14, s*0.14); head.translate(0, s*0.62, 0); colorGeometry(head, 0xe0e0e0); parts.push(head);
-            const visorL = new THREE.BoxGeometry(s*0.03, s*0.03, s*0.04); visorL.translate(-s*0.03, s*0.64, s*0.07); colorGeometry(visorL, 0xff1744); parts.push(visorL);
-            const visorR = new THREE.BoxGeometry(s*0.09, s*0.02, s*0.04); visorR.translate(0, s*0.64, s*0.07); colorGeometry(visorR, 0xff1744); parts.push(visorR);
-            const sideAntenna = new THREE.CylinderGeometry(s*0.005, s*0.005, s*0.18, 4); sideAntenna.translate(s*0.075, s*0.68, 0); colorGeometry(sideAntenna, 0x757575); parts.push(sideAntenna);
-            
-            const merged = mergeBufferGeometries(parts);
-            merged.translate(0, s*0.1, 0);
-            return { geo: merged, params: {} };
-        }
-        case 'ninja': {
-            const parts = [];
-            // Tabi boots (split-toe ninja shoes)
-            const bootL = new THREE.BoxGeometry(s*0.07, s*0.04, s*0.14); bootL.translate(-s*0.08, -s*0.06, s*0.03); colorGeometry(bootL, 0x212121); parts.push(bootL);
-            const bootR = new THREE.BoxGeometry(s*0.07, s*0.04, s*0.14); bootR.translate(s*0.08, -s*0.06, s*0.03); colorGeometry(bootR, 0x212121); parts.push(bootR);
-            
-            // Shin wrap layers
-            const shinL = new THREE.CylinderGeometry(s*0.04, s*0.03, s*0.18, 8); shinL.translate(-s*0.08, s*0.05, 0); colorGeometry(shinL, 0x311b92); parts.push(shinL);
-            const shinR = new THREE.CylinderGeometry(s*0.04, s*0.03, s*0.18, 8); shinR.translate(s*0.08, s*0.05, 0); colorGeometry(shinR, 0x311b92); parts.push(shinR);
-            const thighL = new THREE.CylinderGeometry(s*0.05, s*0.04, s*0.18, 8); thighL.translate(-s*0.08, s*0.2, 0); colorGeometry(thighL, 0x212121); parts.push(thighL);
-            const thighR = new THREE.CylinderGeometry(s*0.05, s*0.04, s*0.18, 8); thighR.translate(s*0.08, s*0.2, 0); colorGeometry(thighR, 0x212121); parts.push(thighR);
-            
-            // Red sash / belt at the waist
-            const sash = new THREE.BoxGeometry(s*0.22, s*0.06, s*0.15); sash.translate(0, s*0.3, 0); colorGeometry(sash, 0xd50000); parts.push(sash);
-            const sashEnds = new THREE.BoxGeometry(s*0.04, s*0.15, s*0.02); sashEnds.translate(-s*0.06, s*0.2, s*0.08); colorGeometry(sashEnds, 0xd50000); parts.push(sashEnds);
-
-            // Torso (Stealth armor vest)
-            const torso = new THREE.BoxGeometry(s*0.26, s*0.24, s*0.16); torso.translate(0, s*0.44, 0); colorGeometry(torso, 0x212121); parts.push(torso);
-            const shoulderGuardL = new THREE.BoxGeometry(s*0.06, s*0.02, s*0.18); shoulderGuardL.translate(-s*0.14, s*0.54, 0); colorGeometry(shoulderGuardL, 0x311b92); parts.push(shoulderGuardL);
-            const shoulderGuardR = new THREE.BoxGeometry(s*0.06, s*0.02, s*0.18); shoulderGuardR.translate(s*0.14, s*0.54, 0); colorGeometry(shoulderGuardR, 0x311b92); parts.push(shoulderGuardR);
-
-            // Head (Hooded mask with visible skin/eyes)
-            const head = new THREE.SphereGeometry(s*0.09, 12, 12); head.translate(0, s*0.62, 0); colorGeometry(head, 0xffcc99); parts.push(head);
-            const mask = new THREE.SphereGeometry(s*0.092, 12, 12); mask.translate(0, s*0.62, 0); colorGeometry(mask, 0x212121); parts.push(mask);
-            // Cutout for eyes (represented by a skin plate)
-            const eyeCutout = new THREE.BoxGeometry(s*0.08, s*0.03, s*0.015); eyeCutout.translate(0, s*0.64, s*0.085); colorGeometry(eyeCutout, 0xffcc99); parts.push(eyeCutout);
-            const eyes = new THREE.BoxGeometry(s*0.06, s*0.01, s*0.016); eyes.translate(0, s*0.64, s*0.086); colorGeometry(eyes, 0xffffff); parts.push(eyes);
-
-            // Shoulders & Arms (Wrapped sleeves)
-            const armL = new THREE.CylinderGeometry(s*0.035, s*0.03, s*0.2, 8); armL.translate(-s*0.16, s*0.44, 0); colorGeometry(armL, 0x212121); parts.push(armL);
-            const armR = new THREE.CylinderGeometry(s*0.035, s*0.03, s*0.2, 8); armR.translate(s*0.16, s*0.44, 0); colorGeometry(armR, 0x212121); parts.push(armR);
-            const wristL = new THREE.CylinderGeometry(s*0.032, s*0.032, s*0.06, 8); wristL.translate(-s*0.16, s*0.32, 0); colorGeometry(wristL, 0xd50000); parts.push(wristL);
-            const wristR = new THREE.CylinderGeometry(s*0.032, s*0.032, s*0.06, 8); wristR.translate(s*0.16, s*0.32, 0); colorGeometry(wristR, 0xd50000); parts.push(wristR);
-            const handL = new THREE.SphereGeometry(s*0.03, 8, 8); handL.translate(-s*0.16, s*0.28, 0); colorGeometry(handL, 0xffcc99); parts.push(handL);
-            const handR = new THREE.SphereGeometry(s*0.03, 8, 8); handR.translate(s*0.16, s*0.28, 0); colorGeometry(handR, 0xffcc99); parts.push(handR);
-
-            // Crossed Katanas on the Back
-            const katana1 = new THREE.BoxGeometry(s*0.02, s*0.42, s*0.04); katana1.rotateZ(0.6); katana1.translate(-s*0.08, s*0.48, -s*0.11); colorGeometry(katana1, 0x111111); parts.push(katana1);
-            const handle1 = new THREE.BoxGeometry(s*0.024, s*0.14, s*0.044); handle1.rotateZ(0.6); handle1.translate(-s*0.2, s*0.62, -s*0.12); colorGeometry(handle1, 0xffd700); parts.push(handle1);
-            
-            const katana2 = new THREE.BoxGeometry(s*0.02, s*0.42, s*0.04); katana2.rotateZ(-0.6); katana2.translate(s*0.08, s*0.48, -s*0.11); colorGeometry(katana2, 0x111111); parts.push(katana2);
-            const handle2 = new THREE.BoxGeometry(s*0.024, s*0.14, s*0.044); handle2.rotateZ(-0.6); handle2.translate(s*0.2, s*0.62, -s*0.12); colorGeometry(handle2, 0xffd700); parts.push(handle2);
-
-            const merged = mergeBufferGeometries(parts);
-            merged.translate(0, s*0.1, 0);
-            return { geo: merged, params: {} };
-        }
-        case 'ranger': {
-            const parts = [];
-            // Sci-fi boot plates
-            const bootL = new THREE.BoxGeometry(s*0.08, s*0.06, s*0.15); bootL.translate(-s*0.09, -s*0.06, s*0.02); colorGeometry(bootL, 0x1e3a8a); parts.push(bootL);
-            const bootR = new THREE.BoxGeometry(s*0.08, s*0.06, s*0.15); bootR.translate(s*0.09, -s*0.06, s*0.02); colorGeometry(bootR, 0x1e3a8a); parts.push(bootR);
-            // Armored space suit legs
-            const shinL = new THREE.CylinderGeometry(s*0.05, s*0.04, s*0.18, 8); shinL.translate(-s*0.09, s*0.04, 0); colorGeometry(shinL, 0xffffff); parts.push(shinL);
-            const shinR = new THREE.CylinderGeometry(s*0.05, s*0.04, s*0.18, 8); shinR.translate(s*0.09, s*0.04, 0); colorGeometry(shinR, 0xffffff); parts.push(shinR);
-            const kneeL = new THREE.SphereGeometry(s*0.04, 8, 8); kneeL.translate(-s*0.09, s*0.12, 0.02); colorGeometry(kneeL, 0x1e3a8a); parts.push(kneeL);
-            const kneeR = new THREE.SphereGeometry(s*0.04, 8, 8); kneeR.translate(s*0.09, s*0.12, 0.02); colorGeometry(kneeR, 0x1e3a8a); parts.push(kneeR);
-            const thighL = new THREE.CylinderGeometry(s*0.06, s*0.05, s*0.18, 8); thighL.translate(-s*0.09, s*0.21, 0); colorGeometry(thighL, 0xffffff); parts.push(thighL);
-            const thighR = new THREE.CylinderGeometry(s*0.06, s*0.05, s*0.18, 8); thighR.translate(s*0.09, s*0.21, 0); colorGeometry(thighR, 0xffffff); parts.push(thighR);
-            
-            // Heavy utilities belt
-            const hips = new THREE.BoxGeometry(s*0.26, s*0.07, s*0.17); hips.translate(0, s*0.3, 0); colorGeometry(hips, 0x1e3a8a); parts.push(hips);
-
-            // Torso (Space Explorer core suit)
-            const torso = new THREE.BoxGeometry(s*0.3, s*0.25, s*0.2); torso.translate(0, s*0.45, 0); colorGeometry(torso, 0xffffff); parts.push(torso);
-            // Chest console display
-            const display = new THREE.BoxGeometry(s*0.16, s*0.1, s*0.03); display.translate(0, s*0.48, s*0.1); colorGeometry(display, 0x222222); parts.push(display);
-            const redBtn = new THREE.BoxGeometry(s*0.02, s*0.02, s*0.01); redBtn.translate(-s*0.04, s*0.48, s*0.116); colorGeometry(redBtn, 0xef4444); parts.push(redBtn);
-            const greenBtn = new THREE.BoxGeometry(s*0.02, s*0.02, s*0.01); greenBtn.translate(s*0.04, s*0.48, s*0.116); colorGeometry(greenBtn, 0x22c55e); parts.push(greenBtn);
-            
-            // Life support backpack
-            const pack = new THREE.BoxGeometry(s*0.26, s*0.24, s*0.1); pack.translate(0, s*0.46, -s*0.14); colorGeometry(pack, 0x1e3a8a); parts.push(pack);
-            const tankL = new THREE.CylinderGeometry(s*0.04, s*0.04, s*0.18, 8); tankL.translate(-s*0.07, s*0.46, -s*0.2); colorGeometry(tankL, 0xffffff); parts.push(tankL);
-            const tankR = new THREE.CylinderGeometry(s*0.04, s*0.04, s*0.18, 8); tankR.translate(s*0.07, s*0.46, -s*0.2); colorGeometry(tankR, 0xffffff); parts.push(tankR);
-
-            // Bubble Glass Space Helmet
-            const head = new THREE.SphereGeometry(s*0.08, 10, 10); head.translate(0, s*0.62, 0); colorGeometry(head, 0xffcc99); parts.push(head);
-            const dome = new THREE.SphereGeometry(s*0.13, 16, 16); dome.translate(0, s*0.64, 0); colorGeometry(dome, 0x80deea); parts.push(dome); // Transparent light blue dome
-            const domeRing = new THREE.TorusGeometry(s*0.128, s*0.012, 8, 16); domeRing.rotateX(Math.PI/2); domeRing.translate(0, s*0.57, 0); colorGeometry(domeRing, 0xffd700); parts.push(domeRing);
-
-            // Shoulders & Arms
-            const shoulderL = new THREE.SphereGeometry(s*0.065, 8, 8); shoulderL.translate(-s*0.18, s*0.51, 0); colorGeometry(shoulderL, 0x1e3a8a); parts.push(shoulderL);
-            const shoulderR = new THREE.SphereGeometry(s*0.065, 8, 8); shoulderR.translate(s*0.18, s*0.51, 0); colorGeometry(shoulderR, 0x1e3a8a); parts.push(shoulderR);
-            const armL = new THREE.CylinderGeometry(s*0.038, s*0.035, s*0.18, 8); armL.translate(-s*0.18, s*0.41, 0); colorGeometry(armL, 0xffffff); parts.push(armL);
-            const armR = new THREE.CylinderGeometry(s*0.038, s*0.035, s*0.18, 8); armR.translate(s*0.18, s*0.41, 0); colorGeometry(armR, 0xffffff); parts.push(armR);
-            const gloveL = new THREE.BoxGeometry(s*0.045, s*0.045, s*0.045); gloveL.translate(-s*0.18, s*0.31, 0); colorGeometry(gloveL, 0x1e3a8a); parts.push(gloveL);
-            const gloveR = new THREE.BoxGeometry(s*0.045, s*0.045, s*0.045); gloveR.translate(s*0.18, s*0.31, 0); colorGeometry(gloveR, 0x1e3a8a); parts.push(gloveR);
-
-            // Futuristic Space Blaster (Held in Right Hand)
-            const gunHilt = new THREE.BoxGeometry(s*0.02, s*0.06, s*0.02); gunHilt.translate(s*0.2, s*0.28, s*0.04); colorGeometry(gunHilt, 0x222222); parts.push(gunHilt);
-            const gunBody = new THREE.BoxGeometry(s*0.03, s*0.04, s*0.15); gunBody.translate(s*0.2, s*0.31, s*0.09); colorGeometry(gunBody, 0xffffff); parts.push(gunBody);
-            const gunBarrel = new THREE.CylinderGeometry(s*0.012, s*0.012, s*0.06, 8); gunBarrel.rotateX(Math.PI/2); gunBarrel.translate(s*0.2, s*0.31, s*0.18); colorGeometry(gunBarrel, 0x38bdf8); parts.push(gunBarrel);
-
-            const merged = mergeBufferGeometries(parts);
-            merged.translate(0, s*0.1, 0);
-            return { geo: merged, params: {} };
-        }
-        case 'slime': {
-            const parts = [];
-            // Slime Outer Shell (Squashed sphere)
-            const body = new THREE.SphereGeometry(s*0.26, 16, 16); body.scale(1.1, 0.72, 1.1); body.translate(0, s*0.18, 0); colorGeometry(body, 0x00e676); parts.push(body);
-            
-            // Inner Core / Nucleus
-            const core = new THREE.SphereGeometry(s*0.09, 10, 10); core.translate(0, s*0.16, 0); colorGeometry(core, 0xd50000); parts.push(core);
-            
-            // Internal Bubbles
-            const bubble1 = new THREE.SphereGeometry(s*0.03, 6, 6); bubble1.translate(-s*0.09, s*0.2, s*0.08); colorGeometry(bubble1, 0x69f0ae); parts.push(bubble1);
-            const bubble2 = new THREE.SphereGeometry(s*0.02, 6, 6); bubble2.translate(s*0.09, s*0.12, -s*0.09); colorGeometry(bubble2, 0x69f0ae); parts.push(bubble2);
-            const bubble3 = new THREE.SphereGeometry(s*0.025, 6, 6); bubble3.translate(s*0.05, s*0.23, s*0.05); colorGeometry(bubble3, 0x69f0ae); parts.push(bubble3);
-            
-            // Expressive Eyes
-            const eyeL_White = new THREE.SphereGeometry(s*0.038, 8, 8); eyeL_White.scale(1, 1, 0.5); eyeL_White.translate(-s*0.07, s*0.2, s*0.21); colorGeometry(eyeL_White, 0xffffff); parts.push(eyeL_White);
-            const eyeR_White = new THREE.SphereGeometry(s*0.038, 8, 8); eyeR_White.scale(1, 1, 0.5); eyeR_White.translate(s*0.07, s*0.2, s*0.21); colorGeometry(eyeR_White, 0xffffff); parts.push(eyeR_White);
-            const eyeL_Pupil = new THREE.SphereGeometry(s*0.018, 6, 6); eyeL_Pupil.scale(1, 1, 0.5); eyeL_Pupil.translate(-s*0.07, s*0.2, s*0.23); colorGeometry(eyeL_Pupil, 0x000000); parts.push(eyeL_Pupil);
-            const eyeR_Pupil = new THREE.SphereGeometry(s*0.018, 6, 6); eyeR_Pupil.scale(1, 1, 0.5); eyeR_Pupil.translate(s*0.07, s*0.2, s*0.23); colorGeometry(eyeR_Pupil, 0x000000); parts.push(eyeR_Pupil);
-            
-            // Gelatinous Crown Spikes
-            const crownCenter = new THREE.ConeGeometry(s*0.045, s*0.14, 5); crownCenter.translate(0, s*0.34, 0); colorGeometry(crownCenter, 0xffd700); parts.push(crownCenter);
-            const crownL = new THREE.ConeGeometry(s*0.03, s*0.1, 5); crownL.rotateZ(0.4); crownL.translate(-s*0.05, s*0.31, 0); colorGeometry(crownL, 0xffd700); parts.push(crownL);
-            const crownR = new THREE.ConeGeometry(s*0.03, s*0.1, 5); crownR.rotateZ(-0.4); crownR.translate(s*0.05, s*0.31, 0); colorGeometry(crownR, 0xffd700); parts.push(crownR);
-            
-            const merged = mergeBufferGeometries(parts);
-            return { geo: merged, params: {} };
-        }
-        case 'golem': {
-            const parts = [];
-            // Feet / Boulder Soles
-            const footL = new THREE.BoxGeometry(s*0.15, s*0.08, s*0.18); footL.translate(-s*0.14, -s*0.05, 0); colorGeometry(footL, 0x424242); parts.push(footL);
-            const footR = new THREE.BoxGeometry(s*0.15, s*0.08, s*0.18); footR.translate(s*0.14, -s*0.05, 0); colorGeometry(footR, 0x424242); parts.push(footR);
-            // Thick legs
-            const legL = new THREE.BoxGeometry(s*0.12, s*0.18, s*0.14); legL.translate(-s*0.14, s*0.07, 0); colorGeometry(legL, 0x616161); parts.push(legL);
-            const legR = new THREE.BoxGeometry(s*0.12, s*0.18, s*0.14); legR.translate(s*0.14, s*0.07, 0); colorGeometry(legR, 0x616161); parts.push(legR);
-            // Hips
-            const hips = new THREE.BoxGeometry(s*0.36, s*0.1, s*0.22); hips.translate(0, s*0.19, 0); colorGeometry(hips, 0x424242); parts.push(hips);
-            
-            // Stone Torso
-            const torso = new THREE.BoxGeometry(s*0.48, s*0.32, s*0.34); torso.translate(0, s*0.38, 0); colorGeometry(torso, 0x616161); parts.push(torso);
-            // Crystalline Core / Power Fissures (Orange lava glowing inserts)
-            const core1 = new THREE.BoxGeometry(s*0.18, s*0.04, s*0.36); core1.translate(0, s*0.42, 0); colorGeometry(core1, 0xff9100); parts.push(core1);
-            const core2 = new THREE.BoxGeometry(s*0.04, s*0.18, s*0.36); core2.translate(0, s*0.38, 0); colorGeometry(core2, 0xff9100); parts.push(core2);
-            
-            // Boulder Shoulders & Arms
-            const shoulderL = new THREE.BoxGeometry(s*0.18, s*0.18, s*0.18); shoulderL.translate(-s*0.31, s*0.45, 0); colorGeometry(shoulderL, 0x424242); parts.push(shoulderL);
-            const shoulderR = new THREE.BoxGeometry(s*0.18, s*0.18, s*0.18); shoulderR.translate(s*0.31, s*0.45, 0); colorGeometry(shoulderR, 0x424242); parts.push(shoulderR);
-            const armL = new THREE.BoxGeometry(s*0.14, s*0.26, s*0.14); armL.translate(-s*0.31, s*0.25, s*0.06); colorGeometry(armL, 0x616161); parts.push(armL);
-            const armR = new THREE.BoxGeometry(s*0.14, s*0.26, s*0.14); armR.translate(s*0.31, s*0.25, s*0.06); colorGeometry(armR, 0x616161); parts.push(armR);
-            const fistL = new THREE.BoxGeometry(s*0.16, s*0.12, s*0.16); fistL.translate(-s*0.31, s*0.09, s*0.08); colorGeometry(fistL, 0x424242); parts.push(fistL);
-            const fistR = new THREE.BoxGeometry(s*0.16, s*0.12, s*0.16); fistR.translate(s*0.31, s*0.09, s*0.08); colorGeometry(fistR, 0x424242); parts.push(fistR);
-            
-            // Rock Head with deep-set eyes
-            const head = new THREE.BoxGeometry(s*0.18, s*0.18, s*0.18); head.translate(0, s*0.56, s*0.05); colorGeometry(head, 0x616161); parts.push(head);
-            const eyeL = new THREE.BoxGeometry(s*0.04, s*0.02, s*0.02); eyeL.translate(-s*0.045, s*0.58, s*0.135); colorGeometry(eyeL, 0x29b6f6); parts.push(eyeL);
-            const eyeR = new THREE.BoxGeometry(s*0.04, s*0.02, s*0.02); eyeR.translate(s*0.045, s*0.58, s*0.135); colorGeometry(eyeR, 0x29b6f6); parts.push(eyeR);
-            
-            // Crystalline spikes growing on back
-            const spike1 = new THREE.ConeGeometry(s*0.04, s*0.16, 4); spike1.rotateX(0.5); spike1.translate(-s*0.1, s*0.5, -s*0.18); colorGeometry(spike1, 0x29b6f6); parts.push(spike1);
-            const spike2 = new THREE.ConeGeometry(s*0.04, s*0.16, 4); spike2.rotateX(0.5); spike2.translate(s*0.1, s*0.5, -s*0.18); colorGeometry(spike2, 0x29b6f6); parts.push(spike2);
-            
-            const merged = mergeBufferGeometries(parts);
-            merged.translate(0, s*0.09, 0);
-            return { geo: merged, params: {} };
-        }
-        case 'beholder': {
-            const parts = [];
-            // Central body
-            const body = new THREE.SphereGeometry(s*0.28, 16, 16); body.translate(0, s*0.42, 0); colorGeometry(body, 0x880e4f); parts.push(body);
-            // Central eye
-            const sclera = new THREE.SphereGeometry(s*0.1, 12, 12); sclera.scale(1, 1, 0.45); sclera.translate(0, s*0.46, s*0.23); colorGeometry(sclera, 0xffffff); parts.push(sclera);
-            const iris = new THREE.SphereGeometry(s*0.06, 10, 10); iris.scale(1, 1, 0.45); iris.translate(0, s*0.46, s*0.26); colorGeometry(iris, 0xffab00); parts.push(iris);
-            const pupil = new THREE.SphereGeometry(s*0.03, 8, 8); pupil.scale(1, 1, 0.45); pupil.translate(0, s*0.46, s*0.28); colorGeometry(pupil, 0x000000); parts.push(pupil);
-            
-            // Mouth
-            const mouthInner = new THREE.BoxGeometry(s*0.24, s*0.1, s*0.1); mouthInner.translate(0, s*0.29, s*0.18); colorGeometry(mouthInner, 0x4a0010); parts.push(mouthInner);
-            // Teeth (upper & lower)
-            for (let i = 0; i < 5; i++) {
-                const x = -s*0.1 + i * s*0.05;
-                const toothU = new THREE.ConeGeometry(s*0.015, s*0.04, 4); toothU.rotateX(Math.PI); toothU.translate(x, s*0.33, s*0.23); colorGeometry(toothU, 0xffffff); parts.push(toothU);
-                const toothD = new THREE.ConeGeometry(s*0.015, s*0.04, 4); toothD.translate(x, s*0.25, s*0.23); colorGeometry(toothD, 0xffffff); parts.push(toothD);
-            }
-            
-            // Eye Stalks (6 stalks positioned radially)
-            const angles = [0.2, 1.0, 1.8, 2.6, 3.4, 4.2];
-            angles.forEach((a, idx) => {
-                const cos = Math.cos(a);
-                const sin = Math.sin(a);
-                
-                // Curve segment 1
-                const stalk1 = new THREE.CylinderGeometry(s*0.02, s*0.022, s*0.16, 6);
-                stalk1.rotateZ(-cos*0.3);
-                stalk1.rotateX(sin*0.3);
-                stalk1.translate(cos*s*0.18, s*0.62, sin*s*0.1);
-                colorGeometry(stalk1, 0xad1457);
-                parts.push(stalk1);
-                
-                // Curve segment 2 (outer)
-                const stalk2 = new THREE.CylinderGeometry(s*0.016, s*0.02, s*0.14, 6);
-                stalk2.rotateZ(-cos*0.6);
-                stalk2.rotateX(sin*0.6);
-                stalk2.translate(cos*s*0.22, s*0.72, sin*s*0.14);
-                colorGeometry(stalk2, 0xad1457);
-                parts.push(stalk2);
-                
-                // Small eyeball
-                const miniEye = new THREE.SphereGeometry(s*0.032, 8, 8);
-                miniEye.translate(cos*s*0.25, s*0.8, sin*s*0.17);
-                colorGeometry(miniEye, 0xffffff);
-                parts.push(miniEye);
-                
-                const miniPupil = new THREE.SphereGeometry(s*0.014, 6, 6);
-                miniPupil.translate(cos*s*0.26, s*0.8, sin*s*0.19);
-                colorGeometry(miniPupil, 0x00e5ff); // Cyan magic pupil
-                parts.push(miniPupil);
-            });
-            
-            const merged = mergeBufferGeometries(parts);
-            merged.translate(0, -s*0.14, 0); // Align bottom to Y=0
-            return { geo: merged, params: {} };
-        }
+        case 'knight':
+        case 'wizard':
+        case 'cyborg':
+        case 'ninja':
+        case 'ranger':
+        case 'slime':
+        case 'golem':
+        case 'beholder':
         case 'dragon': {
-            const parts = [];
-            // Feet / Claws (4 legs)
-            const legFL = new THREE.CylinderGeometry(s*0.03, s*0.03, s*0.18, 8); legFL.translate(-s*0.14, s*0.09, s*0.18); colorGeometry(legFL, 0xb71c1c); parts.push(legFL);
-            const legFR = new THREE.CylinderGeometry(s*0.03, s*0.03, s*0.18, 8); legFR.translate(s*0.14, s*0.09, s*0.18); colorGeometry(legFR, 0xb71c1c); parts.push(legFR);
-            const legBL = new THREE.CylinderGeometry(s*0.03, s*0.03, s*0.18, 8); legBL.translate(-s*0.14, s*0.09, -s*0.18); colorGeometry(legBL, 0xb71c1c); parts.push(legBL);
-            const legBR = new THREE.CylinderGeometry(s*0.03, s*0.03, s*0.18, 8); legBR.translate(s*0.14, s*0.09, -s*0.18); colorGeometry(legBR, 0xb71c1c); parts.push(legBR);
-            
-            // Claws
-            const clawFL = new THREE.BoxGeometry(s*0.08, s*0.03, s*0.08); clawFL.translate(-s*0.14, s*0.015, s*0.21); colorGeometry(clawFL, 0xffe082); parts.push(clawFL);
-            const clawFR = new THREE.BoxGeometry(s*0.08, s*0.03, s*0.08); clawFR.translate(s*0.14, s*0.015, s*0.21); colorGeometry(clawFR, 0xffe082); parts.push(clawFR);
-            const clawBL = new THREE.BoxGeometry(s*0.08, s*0.03, s*0.08); clawBL.translate(-s*0.14, s*0.015, -s*0.15); colorGeometry(clawBL, 0xffe082); parts.push(clawBL);
-            const clawBR = new THREE.BoxGeometry(s*0.08, s*0.03, s*0.08); clawBR.translate(s*0.14, s*0.015, -s*0.15); colorGeometry(clawBR, 0xffe082); parts.push(clawBR);
-            
-            // Segmented Torso / Body
-            const body1 = new THREE.SphereGeometry(s*0.16, 12, 12); body1.scale(1.2, 1, 1); body1.translate(0, s*0.22, s*0.1); colorGeometry(body1, 0xb71c1c); parts.push(body1);
-            const body2 = new THREE.SphereGeometry(s*0.14, 12, 12); body2.scale(1.2, 1, 1); body2.translate(0, s*0.24, 0); colorGeometry(body2, 0xb71c1c); parts.push(body2);
-            const body3 = new THREE.SphereGeometry(s*0.12, 12, 12); body3.scale(1.2, 1, 1); body3.translate(0, s*0.22, -s*0.1); colorGeometry(body3, 0xb71c1c); parts.push(body3);
-            
-            // Dragon Pale Underbelly
-            const belly = new THREE.SphereGeometry(s*0.13, 10, 10); belly.scale(1.0, 0.8, 1); belly.translate(0, s*0.18, s*0.08); colorGeometry(belly, 0xff8a80); parts.push(belly);
-            
-            // Tail & Tail Tip
-            const tailSegment = new THREE.CylinderGeometry(s*0.05, s*0.02, s*0.28, 8); tailSegment.rotateX(Math.PI/2 - 0.4); tailSegment.translate(0, s*0.26, -s*0.28); colorGeometry(tailSegment, 0xb71c1c); parts.push(tailSegment);
-            const tailBlade = new THREE.ConeGeometry(s*0.04, s*0.1, 4); tailBlade.rotateX(Math.PI/2); tailBlade.translate(0, s*0.32, -s*0.45); colorGeometry(tailBlade, 0x37474f); parts.push(tailBlade);
-            
-            // Neck
-            const neck = new THREE.CylinderGeometry(s*0.06, s*0.08, s*0.22, 8); neck.rotateX(0.4); neck.translate(0, s*0.34, s*0.22); colorGeometry(neck, 0xb71c1c); parts.push(neck);
-            
-            // Head
-            const head = new THREE.BoxGeometry(s*0.12, s*0.1, s*0.16); head.translate(0, s*0.48, s*0.32); colorGeometry(head, 0xb71c1c); parts.push(head);
-            const snout = new THREE.BoxGeometry(s*0.09, s*0.07, s*0.12); snout.translate(0, s*0.465, s*0.43); colorGeometry(snout, 0xb71c1c); parts.push(snout);
-            const eyeL = new THREE.BoxGeometry(s*0.02, s*0.02, s*0.02); eyeL.translate(-s*0.05, s*0.5, s*0.37); colorGeometry(eyeL, 0xffeb3b); parts.push(eyeL);
-            const eyeR = new THREE.BoxGeometry(s*0.02, s*0.02, s*0.02); eyeR.translate(s*0.05, s*0.5, s*0.37); colorGeometry(eyeR, 0xffeb3b); parts.push(eyeR);
-            
-            // Horns
-            const hornL = new THREE.ConeGeometry(s*0.02, s*0.14, 4); hornL.rotateX(-0.5); hornL.rotateZ(-0.2); hornL.translate(-s*0.04, s*0.56, s*0.22); colorGeometry(hornL, 0xffe082); parts.push(hornL);
-            const hornR = new THREE.ConeGeometry(s*0.02, s*0.14, 4); hornR.rotateX(-0.5); hornR.rotateZ(0.2); hornR.translate(s*0.04, s*0.56, s*0.22); colorGeometry(hornR, 0xffe082); parts.push(hornR);
-            
-            // Wings Left & Right
-            // Wing bones
-            const wingBoneL = new THREE.BoxGeometry(s*0.38, s*0.03, s*0.03); wingBoneL.rotateZ(0.6); wingBoneL.rotateY(-0.4); wingBoneL.translate(-s*0.22, s*0.42, 0); colorGeometry(wingBoneL, 0xb71c1c); parts.push(wingBoneL);
-            const wingBoneR = new THREE.BoxGeometry(s*0.38, s*0.03, s*0.03); wingBoneR.rotateZ(-0.6); wingBoneR.rotateY(0.4); wingBoneR.translate(s*0.22, s*0.42, 0); colorGeometry(wingBoneR, 0xb71c1c); parts.push(wingBoneR);
-            // Wing membranes (Thin plate geometry approximation)
-            const wingMemL = new THREE.BoxGeometry(s*0.35, s*0.25, s*0.005); wingMemL.rotateZ(0.4); wingMemL.rotateY(-0.3); wingMemL.translate(-s*0.22, s*0.36, -s*0.02); colorGeometry(wingMemL, 0x7f0000); parts.push(wingMemL);
-            const wingMemR = new THREE.BoxGeometry(s*0.35, s*0.25, s*0.005); wingMemR.rotateZ(-0.4); wingMemR.rotateY(0.3); wingMemR.translate(s*0.22, s*0.36, -s*0.02); colorGeometry(wingMemR, 0x7f0000); parts.push(wingMemR);
-            
-            const merged = mergeBufferGeometries(parts);
-            return { geo: merged, params: {} };
+            const geo = buildObjectStandeeGeometry(type);
+            return { geo: geo, params: {} };
         }
         case 'boat': {
             const geo = buildObjectStandeeGeometry('boat');
@@ -2229,6 +1868,113 @@ function onPointerDown(e) {
         }
     }
 
+    // Magic Stitch Tool Handler
+    if (APP.activeTool === 'magicStitch' && APP.selected) {
+        const hits = APP.raycaster.intersectObject(APP.selected);
+        if (hits.length > 0) {
+            const hit = hits[0];
+            const localHit = APP.selected.worldToLocal(hit.point.clone());
+            const radius = (parseFloat(el('stitchRadius')?.value) || 20) / 5;
+            const geo = APP.selected.geometry;
+            const pos = geo.attributes.position;
+            if (!pos) return;
+            
+            const nearbyVerts = [];
+            for (let i = 0; i < pos.count; i++) {
+                const v = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
+                if (v.distanceTo(localHit) < radius) {
+                    nearbyVerts.push(i);
+                }
+            }
+            
+            if (nearbyVerts.length === 0) {
+                toast('⚠️ Bu bölgede tepe noktası bulunamadı. Yarıçapı artırın.', 'warning', 2000);
+                return;
+            }
+            
+            if (APP.magicStitch.pickingGroup === 'A') {
+                APP.magicStitch.groupA = nearbyVerts;
+                APP.magicStitch.pickingGroup = 'B';
+                updateStitchPreview();
+                toast(`✅ Grup A seçildi: ${nearbyVerts.length} vertex. Şimdi ikinci bölgeye tıklayın.`, 'success', 2500);
+            } else {
+                APP.magicStitch.groupB = nearbyVerts;
+                APP.magicStitch.pickingGroup = 'A';
+                updateStitchPreview();
+                toast(`✅ Grup B seçildi: ${nearbyVerts.length} vertex. 🧵 Dikiş At butonuna basın veya başka bölge seçin.`, 'success', 2500);
+            }
+            return;
+        }
+    }
+
+    // Conform Warp Tool Handler
+    if (APP.activeTool === 'conformWarp' && APP.selected) {
+        if (APP.conformWarp && APP.conformWarp.drawingCurve) {
+            APP.orbit.enabled = false;
+            APP.conformWarp.isDrawing = true;
+            try { cv.setPointerCapture(e.pointerId); } catch(err) {}
+            
+            const planeNormal = new THREE.Vector3();
+            APP.camera.getWorldDirection(planeNormal);
+            planeNormal.negate();
+            
+            const center = new THREE.Vector3();
+            const box = new THREE.Box3().setFromObject(APP.selected);
+            box.getCenter(center);
+            
+            const planeConstant = -center.dot(planeNormal);
+            APP.conformWarp.drawPlane = new THREE.Plane(planeNormal, planeConstant);
+            
+            const pt = new THREE.Vector3();
+            APP.raycaster.ray.intersectPlane(APP.conformWarp.drawPlane, pt);
+            APP.conformWarp.curvePoints = [pt];
+            APP.conformWarp.curveNormals = [];
+            
+            updateConformCurvePreview();
+            return;
+        } else if (APP.conformWarp && APP.conformWarp.brushing) {
+            let target = null;
+            const targetId = el('conformTarget')?.value;
+            if (targetId) {
+                target = APP.objects.find(obj => obj.userData.id === targetId);
+            }
+            if (!target) {
+                const otherObjects = APP.objects.filter(obj => obj !== APP.selected);
+                const targetHits = APP.raycaster.intersectObjects(otherObjects, true);
+                if (targetHits.length > 0) {
+                    target = targetHits[0].object;
+                }
+            }
+            
+            if (target) {
+                const hits = APP.raycaster.intersectObject(target, true);
+                if (hits.length > 0) {
+                    APP.orbit.enabled = false;
+                    APP.conformWarp.isBrushing = true;
+                    APP.conformWarp.brushTarget = target;
+                    try { cv.setPointerCapture(e.pointerId); } catch(err) {}
+                    
+                    const hitPt = hits[0].point;
+                    const hitNorm = hits[0].face.normal.clone().applyMatrix3(new THREE.Matrix3().getNormalMatrix(target.matrixWorld)).normalize();
+                    
+                    APP.conformWarp.curvePoints = [hitPt];
+                    APP.conformWarp.curveNormals = [hitNorm];
+                    
+                    updateConformCurvePreview();
+                    
+                    if (!APP.selected.userData.origPosition) {
+                        const geo = APP.selected.geometry;
+                        const pos = geo.attributes.position;
+                        APP.selected.userData.origPosition = new Float32Array(pos.array);
+                    }
+                    return;
+                }
+            } else {
+                toast('⚠️ Fırçalamak için alt tarafta hedef bir yüzey olmalı!', 'warning', 2500);
+            }
+        }
+    }
+
     // Sculpt / Paint brush check
     const isBrushActive = APP.activeTool === 'paint' || APP.activeTool === 'sculpt' || APP.mode === 'edit';
     if (isBrushActive && APP.selected) {
@@ -2253,6 +1999,47 @@ function onPointerDown(e) {
 function onMouseMove(e) {
     if (APP.mode === 'sketch') return;
     
+    // Conform Warp drawing / brushing drag check
+    if (APP.activeTool === 'conformWarp' && APP.selected && APP.conformWarp) {
+        if (APP.conformWarp.isDrawing && APP.conformWarp.drawPlane) {
+            const rect = APP.renderer.domElement.getBoundingClientRect();
+            const mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            const my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            APP.raycaster.setFromCamera({ x: mx, y: my }, APP.camera);
+            
+            const pt = new THREE.Vector3();
+            APP.raycaster.ray.intersectPlane(APP.conformWarp.drawPlane, pt);
+            
+            const lastPt = APP.conformWarp.curvePoints[APP.conformWarp.curvePoints.length - 1];
+            if (!lastPt || pt.distanceTo(lastPt) > 0.5) {
+                APP.conformWarp.curvePoints.push(pt);
+                updateConformCurvePreview();
+                deformSelectedObjectAlongCurve();
+            }
+            return;
+        } else if (APP.conformWarp.isBrushing && APP.conformWarp.brushTarget) {
+            const rect = APP.renderer.domElement.getBoundingClientRect();
+            const mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            const my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            APP.raycaster.setFromCamera({ x: mx, y: my }, APP.camera);
+            
+            const hits = APP.raycaster.intersectObject(APP.conformWarp.brushTarget, true);
+            if (hits.length > 0) {
+                const pt = hits[0].point;
+                const norm = hits[0].face.normal.clone().applyMatrix3(new THREE.Matrix3().getNormalMatrix(APP.conformWarp.brushTarget.matrixWorld)).normalize();
+                
+                const lastPt = APP.conformWarp.curvePoints[APP.conformWarp.curvePoints.length - 1];
+                if (!lastPt || pt.distanceTo(lastPt) > 0.5) {
+                    APP.conformWarp.curvePoints.push(pt);
+                    APP.conformWarp.curveNormals.push(norm);
+                    updateConformCurvePreview();
+                    deformSelectedObjectAlongCurve();
+                }
+            }
+            return;
+        }
+    }
+
     // Sculpt / Paint / FacePaint drag check
     if (APP.sculpting) {
         if (APP.activeTool === 'facePaint') {
@@ -2289,16 +2076,23 @@ function onMouseMove(e) {
     
     // Handle brush helper visibility and placement when not dragging
     let showHelper = false;
-    const isBrushActive = APP.activeTool === 'paint' || APP.activeTool === 'sculpt';
-    if (isBrushActive && APP.selected) {
+    const isBrushActive = APP.activeTool === 'paint' || APP.activeTool === 'sculpt' || (APP.activeTool === 'conformWarp' && APP.conformWarp?.brushing);
+    if (isBrushActive) {
         APP.raycaster.setFromCamera({ x: mx, y: my }, APP.camera);
-        const hits = APP.raycaster.intersectObject(APP.selected);
-        if (hits.length > 0) {
-            let radius = 30;
-            if (APP.activeTool === 'paint') radius = parseFloat(el('brushRadius')?.value) || 30;
-            else if (APP.activeTool === 'sculpt') radius = parseFloat(el('sculptRadiusRange')?.value) || 30;
-            updateBrushHelper(hits[0], radius);
-            showHelper = true;
+        let targetMesh = APP.selected;
+        if (APP.activeTool === 'conformWarp') {
+            targetMesh = getConformTargetMesh();
+        }
+        if (targetMesh) {
+            const hits = APP.raycaster.intersectObject(targetMesh, true);
+            if (hits.length > 0) {
+                let radius = 30;
+                if (APP.activeTool === 'paint') radius = parseFloat(el('brushRadius')?.value) || 30;
+                else if (APP.activeTool === 'sculpt') radius = parseFloat(el('sculptRadiusRange')?.value) || 30;
+                else if (APP.activeTool === 'conformWarp') radius = parseFloat(el('conformBrushRadius')?.value) || 50;
+                updateBrushHelper(hits[0], radius);
+                showHelper = true;
+            }
         }
     }
     if (!showHelper && APP.brushHelper) {
@@ -2314,6 +2108,20 @@ function onMouseMove(e) {
 }
 
 function onPointerUp(e) {
+    if (APP.activeTool === 'conformWarp' && APP.conformWarp && (APP.conformWarp.isDrawing || APP.conformWarp.isBrushing)) {
+        try {
+            const cv = APP.renderer.domElement;
+            cv.releasePointerCapture(e.pointerId);
+        } catch(err) {}
+        APP.conformWarp.isDrawing = false;
+        APP.conformWarp.isBrushing = false;
+        APP.orbit.enabled = true;
+        saveHist('conformWarp');
+        updateStats();
+        toast('✓ Yüzey bükme işlemi tamamlandı', 'success', 1200);
+        return;
+    }
+
     if (APP.sculpting) {
         if (APP.sculptPointerId !== undefined) {
             try {
@@ -2355,7 +2163,7 @@ function updateBrushHelper(hit, radius) {
     APP.brushHelper.position.copy(hit.point);
 
     const normal = hit.face.normal.clone();
-    const normalMatrix = new THREE.Matrix3().getNormalMatrix(APP.selected.matrixWorld);
+    const normalMatrix = new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld);
     const worldNormal = normal.applyMatrix3(normalMatrix).normalize();
     const lookTarget = hit.point.clone().add(worldNormal);
     APP.brushHelper.lookAt(lookTarget);
@@ -2611,7 +2419,7 @@ function applySculpt(e) {
    INSPECTOR
 ════════════════════════════════════════ */
 function showInspector(show) {
-    const isToolActive = APP.activeTool === 'paint' || APP.activeTool === 'sculpt' || APP.activeTool === 'facePaint' || APP.activeTool === 'extrudeFace';
+    const isToolActive = APP.activeTool === 'paint' || APP.activeTool === 'sculpt' || APP.activeTool === 'facePaint' || APP.activeTool === 'extrudeFace' || APP.activeTool === 'magicStitch';
     const isSketch = APP.mode === 'sketch';
     if (show || isToolActive || isSketch) {
         el('rpEmpty').style.display = 'none';
@@ -4853,7 +4661,9 @@ function bindAll() {
         ['ltPaintBrush','paint'],
         ['ltFacePaint','facePaint'],
         ['ltExtrudeFace','extrudeFace'],
-        ['ltSculpt','sculpt']
+        ['ltSculpt','sculpt'],
+        ['ltConformWarp','conformWarp'],
+        ['ltMagicStitch','magicStitch']
     ].forEach(([id,tool]) => {
         const btn = el(id);
         if (!btn) return;
@@ -4863,23 +4673,33 @@ function bindAll() {
             APP.activeTool=tool;
             hideBrushHelper();
             
+            if (tool !== 'conformWarp') {
+                deactivateConformWarp();
+            }
+            if (tool !== 'magicStitch') {
+                clearMagicStitch();
+            }
+            
             // sync menubar
             document.querySelectorAll('.mb-btn.tool-btn').forEach(b=>b.classList.remove('active'));
             const mbIds={select:'tbSel',translate:'tbMove',rotate:'tbRot',scale:'tbScl'};
             const mbid=mbIds[tool]; if (mbid) el(mbid).classList.add('active');
             
-            if (tool === 'select' || tool === 'paint' || tool === 'facePaint' || tool === 'extrudeFace' || tool === 'sculpt') {
+            if (tool === 'select' || tool === 'paint' || tool === 'facePaint' || tool === 'extrudeFace' || tool === 'sculpt' || tool === 'conformWarp' || tool === 'magicStitch') {
                 APP.transform.detach();
             } else {
                 APP.transform.setMode(tool);
                 if (APP.selected && APP.mode === 'object') APP.transform.attach(APP.selected);
             }
             
-            if (tool === 'paint' || tool === 'facePaint' || tool === 'extrudeFace' || tool === 'sculpt') {
+            if (tool === 'paint' || tool === 'facePaint' || tool === 'extrudeFace' || tool === 'sculpt' || tool === 'conformWarp' || tool === 'magicStitch') {
                 switchLeftTab('shapes');
                 const t = document.querySelector('.rp-tab[data-rpt="toolopts"]');
                 if (t) t.click();
                 updateActiveToolUI(tool);
+                if (tool === 'conformWarp') {
+                    populateConformTargetDropdown();
+                }
             } else {
                 updateActiveToolUI(null);
             }
@@ -5116,6 +4936,65 @@ function bindAll() {
         saveHist('clear-paint');
         refreshInspector(APP.selected);
         toast('🎨 Boyama temizlendi', 'info', 1500);
+    });
+
+    // Conform Warp Event Bindings
+    el('btnConformDrawCurve')?.addEventListener('click', () => {
+        if (!APP.selected) {
+            toast('⚠️ Bükme işlemi için önce bir nesne seçmelisiniz!', 'warning', 2500);
+            return;
+        }
+        if (!APP.selected.userData.origPosition) {
+            const pos = APP.selected.geometry.attributes.position;
+            APP.selected.userData.origPosition = new Float32Array(pos.array);
+        }
+        
+        APP.conformWarp.drawingCurve = !APP.conformWarp.drawingCurve;
+        APP.conformWarp.brushing = false;
+        
+        el('btnConformDrawCurve').classList.toggle('active', APP.conformWarp.drawingCurve);
+        el('btnConformBrush').classList.remove('active');
+        
+        if (APP.conformWarp.drawingCurve) {
+            toast('✍️ Çizim Aktif: Ekranda farenin sol tuşuna basılı tutup sürükleyerek bükme eğrisi çizin.', 'info', 4000);
+            setStatus('Eğri çizim modu aktif...');
+        } else {
+            setStatus('Eğri çizimi kapatıldı.');
+        }
+    });
+
+    el('btnConformClearCurve')?.addEventListener('click', () => {
+        clearConformWarp();
+    });
+
+    el('btnConformSnap')?.addEventListener('click', () => {
+        performConformSnap();
+    });
+
+    el('btnConformBrush')?.addEventListener('click', () => {
+        if (!APP.selected) {
+            toast('⚠️ Fırçalama yapmak için önce bir nesne seçmelisiniz!', 'warning', 2500);
+            return;
+        }
+        
+        APP.conformWarp.brushing = !APP.conformWarp.brushing;
+        APP.conformWarp.drawingCurve = false;
+        
+        el('btnConformBrush').classList.toggle('active', APP.conformWarp.brushing);
+        el('btnConformDrawCurve').classList.remove('active');
+        
+        if (APP.conformWarp.brushing) {
+            populateConformTargetDropdown();
+            toast('🖌️ Fırçalama Aktif: Alt tarafta yer alan hedef yüzey üzerinde sürükleyin.', 'info', 4000);
+            setStatus('Yüzey fırçalama modu aktif...');
+        } else {
+            hideBrushHelper();
+            setStatus('Fırçalama modu kapatıldı.');
+        }
+    });
+
+    el('conformTarget')?.addEventListener('focus', () => {
+        populateConformTargetDropdown();
     });
 
     // Inspector inputs
@@ -5375,12 +5254,15 @@ function createObjectTexture(type, callback, onImageLoaded) {
     let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
     let title = info.label;
     let subtitle = info.sub;
-    let themeColor = info.category === 'building' ? '#b0bec5' : '#cd7f32';
+    let themeColor = info.category === 'building' ? '#b0bec5' : (info.category === 'character' ? '#e040fb' : '#cd7f32');
     let imageUrl = `https://images.unsplash.com/${info.img}?auto=format&fit=crop&w=256&h=512&q=80`;
     
     if (info.category === 'building') {
         grad.addColorStop(0, '#37474f');
         grad.addColorStop(1, '#212121');
+    } else if (info.category === 'character') {
+        grad.addColorStop(0, '#4a148c');
+        grad.addColorStop(1, '#1a0633');
     } else {
         grad.addColorStop(0, '#3e2723');
         grad.addColorStop(1, '#1a0c00');
@@ -5455,7 +5337,7 @@ function applyObjectTexture(mesh) {
             mesh.material.needsUpdate = true;
         }, (img) => {
             const info = STANDEE_INFO[type];
-            const rimColor = info.category === 'building' ? 0xb0bec5 : 0xcd7f32;
+            const rimColor = info.category === 'building' ? 0xb0bec5 : (info.category === 'character' ? 0xe040fb : 0xcd7f32);
             try {
                 const pedestalGeo = buildPedestalGeometry(type);
                 const silhouetteGeo = generateSilhouetteGeometry(type, img, rimColor);
@@ -6116,7 +5998,7 @@ function updateActiveToolUI(tool) {
     const sec = el('secActiveToolSettings');
     const cv = el('mainCanvas');
     if (cv) {
-        if (tool === 'paint' || tool === 'sculpt' || tool === 'facePaint' || tool === 'extrudeFace') {
+        if (tool === 'paint' || tool === 'sculpt' || tool === 'facePaint' || tool === 'extrudeFace' || tool === 'conformWarp' || tool === 'magicStitch') {
             cv.style.cursor = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><circle cx='8' cy='8' r='5' stroke='%2358a6ff' stroke-width='2' fill='none'/></svg>") 8 8, crosshair`;
         } else {
             cv.style.cursor = 'default';
@@ -6128,6 +6010,10 @@ function updateActiveToolUI(tool) {
     el('optFacePaint').style.display = 'none';
     el('optExtrudeFace').style.display = 'none';
     el('optSculpt').style.display = 'none';
+    const optCW = el('optConformWarp');
+    if (optCW) optCW.style.display = 'none';
+    const optMS = el('optMagicStitch');
+    if (optMS) optMS.style.display = 'none';
     
     if (tool === 'paint') {
         sec.style.display = 'block';
@@ -6145,6 +6031,14 @@ function updateActiveToolUI(tool) {
         sec.style.display = 'block';
         el('optSculpt').style.display = 'block';
         el('activeToolTitle').textContent = 'YOĞURMA FIRÇASI AYARLARI';
+    } else if (tool === 'conformWarp') {
+        sec.style.display = 'block';
+        if (optCW) optCW.style.display = 'block';
+        el('activeToolTitle').textContent = 'YÜZEY BÜKÜCÜ & MIKNATISI';
+    } else if (tool === 'magicStitch') {
+        sec.style.display = 'block';
+        if (optMS) optMS.style.display = 'block';
+        el('activeToolTitle').textContent = 'SİHİRLİ DİKİŞ AYARLARI';
     } else {
         sec.style.display = 'none';
     }
@@ -6154,7 +6048,7 @@ function updateActiveToolUI(tool) {
 function updateInspectorTabsVisibility() {
     const hasSel = APP.selected !== null;
     const isSketch = APP.mode === 'sketch';
-    const isTool = APP.activeTool === 'paint' || APP.activeTool === 'sculpt' || APP.activeTool === 'facePaint' || APP.activeTool === 'extrudeFace';
+    const isTool = APP.activeTool === 'paint' || APP.activeTool === 'sculpt' || APP.activeTool === 'facePaint' || APP.activeTool === 'extrudeFace' || APP.activeTool === 'conformWarp' || APP.activeTool === 'magicStitch';
     
     document.querySelectorAll('.rp-tab').forEach(tab => {
         const key = tab.dataset.rpt;
@@ -6182,6 +6076,12 @@ function updateViewportBadge() {
         badge.className = 'vp-badge edit-mode';
     } else if (APP.activeTool === 'sculpt') {
         badge.textContent = 'YOĞURMA MODU';
+        badge.className = 'vp-badge edit-mode';
+    } else if (APP.activeTool === 'conformWarp') {
+        badge.textContent = 'YÜZEY BÜKÜCÜ MODU';
+        badge.className = 'vp-badge edit-mode';
+    } else if (APP.activeTool === 'magicStitch') {
+        badge.textContent = 'SİHİRLİ DİKİŞ MODU';
         badge.className = 'vp-badge edit-mode';
     } else {
         if (APP.mode === 'sketch') {
@@ -6213,6 +6113,673 @@ function toast(msg, type='info', dur=3000) {
     setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(12px)'; t.style.transition='.3s ease'; setTimeout(()=>t.remove(),320); }, dur);
 }
 function setStatus(msg) { const s=el('stMsg'); if(s) s.textContent=msg; }
+
+/* ════════════════════════════════════════
+   CONFORM WARP ENGINE
+   ════════════════════════════════════════ */
+function populateConformTargetDropdown() {
+    const dropdown = el('conformTarget');
+    if (!dropdown) return;
+    const currentVal = dropdown.value;
+    dropdown.innerHTML = '<option value="">-- Otomatik Algıla --</option>';
+    APP.objects.forEach(obj => {
+        if (obj !== APP.selected) {
+            const opt = document.createElement('option');
+            opt.value = obj.userData.id;
+            opt.textContent = obj.userData.name;
+            dropdown.appendChild(opt);
+        }
+    });
+    if (currentVal && APP.objects.some(o => o.userData.id === currentVal)) {
+        dropdown.value = currentVal;
+    }
+}
+
+function deactivateConformWarp() {
+    if (APP.conformWarp) {
+        APP.conformWarp.drawingCurve = false;
+        APP.conformWarp.brushing = false;
+        APP.conformWarp.isDrawing = false;
+        APP.conformWarp.isBrushing = false;
+    }
+    const btnDraw = el('btnConformDrawCurve');
+    if (btnDraw) btnDraw.classList.remove('active');
+    const btnBrush = el('btnConformBrush');
+    if (btnBrush) btnBrush.classList.remove('active');
+    
+    if (APP.conformWarp && APP.conformWarp.curvePreview) {
+        APP.scene.remove(APP.conformWarp.curvePreview);
+        APP.conformWarp.curvePreview.geometry.dispose();
+        APP.conformWarp.curvePreview = null;
+    }
+    hideBrushHelper();
+}
+
+function getConformTargetMesh() {
+    if (!APP.conformWarp) return null;
+    let target = null;
+    const targetId = el('conformTarget')?.value;
+    if (targetId) {
+        target = APP.objects.find(obj => obj.userData.id === targetId);
+    }
+    if (!target) {
+        const otherObjects = APP.objects.filter(obj => obj !== APP.selected);
+        const targetHits = APP.raycaster.intersectObjects(otherObjects, true);
+        if (targetHits.length > 0) {
+            target = targetHits[0].object;
+        }
+    }
+    return target;
+}
+
+function interpolateVectorArray(array, u) {
+    if (!array || array.length === 0) return new THREE.Vector3(0, 1, 0);
+    if (array.length === 1) return array[0].clone();
+    const indexFloat = u * (array.length - 1);
+    const index = Math.floor(indexFloat);
+    const fraction = indexFloat - index;
+    if (index >= array.length - 1) return array[array.length - 1].clone();
+    return new THREE.Vector3().lerpVectors(array[index], array[index + 1], fraction);
+}
+
+function updateConformCurvePreview() {
+    if (!APP.conformWarp || !APP.conformWarp.curvePoints || APP.conformWarp.curvePoints.length < 2) {
+        if (APP.conformWarp && APP.conformWarp.curvePreview) APP.conformWarp.curvePreview.visible = false;
+        return;
+    }
+    
+    const curve = new THREE.CatmullRomCurve3(APP.conformWarp.curvePoints);
+    const points = curve.getPoints(50);
+    const geom = new THREE.BufferGeometry().setFromPoints(points);
+    
+    if (!APP.conformWarp.curvePreview) {
+        const mat = new THREE.LineBasicMaterial({
+            color: 0x39c5cf,
+            linewidth: 3,
+            depthTest: false,
+            transparent: true,
+            opacity: 0.9
+        });
+        APP.conformWarp.curvePreview = new THREE.Line(geom, mat);
+        APP.conformWarp.curvePreview.renderOrder = 999;
+        APP.scene.add(APP.conformWarp.curvePreview);
+    } else {
+        APP.conformWarp.curvePreview.geometry.dispose();
+        APP.conformWarp.curvePreview.geometry = geom;
+        APP.conformWarp.curvePreview.visible = true;
+    }
+}
+
+function clearConformWarp() {
+    if (!APP.selected) return;
+    
+    if (APP.conformWarp) {
+        APP.conformWarp.curvePoints = [];
+        APP.conformWarp.curveNormals = [];
+        if (APP.conformWarp.curvePreview) {
+            APP.scene.remove(APP.conformWarp.curvePreview);
+            APP.conformWarp.curvePreview.geometry.dispose();
+            APP.conformWarp.curvePreview = null;
+        }
+    }
+    
+    if (APP.selected.userData.origPosition) {
+        const geo = APP.selected.geometry;
+        const pos = geo.attributes.position;
+        if (pos) {
+            pos.array.set(APP.selected.userData.origPosition);
+            pos.needsUpdate = true;
+            geo.computeVertexNormals();
+            rebuildWireEdges(APP.selected);
+        }
+    }
+    
+    toast('✓ Eğri temizlendi ve obje orijinal haline döndürüldü.', 'info', 1500);
+}
+
+function deformSelectedObjectAlongCurve() {
+    if (!APP.selected || !APP.conformWarp || !APP.conformWarp.curvePoints || APP.conformWarp.curvePoints.length < 2) return;
+    
+    const geo = APP.selected.geometry;
+    const pos = geo.attributes.position;
+    if (!pos) return;
+    
+    if (!APP.selected.userData.origPosition) {
+        APP.selected.userData.origPosition = new Float32Array(pos.array);
+    }
+    const origArray = APP.selected.userData.origPosition;
+    
+    const axis = el('conformAxis')?.value || 'x';
+    const count = pos.count;
+    
+    let minVal = Infinity;
+    let maxVal = -Infinity;
+    
+    for (let i = 0; i < count; i++) {
+        let val = 0;
+        if (axis === 'x') val = origArray[i*3];
+        else if (axis === 'y') val = origArray[i*3+1];
+        else if (axis === 'z') val = origArray[i*3+2];
+        
+        if (val < minVal) minVal = val;
+        if (val > maxVal) maxVal = val;
+    }
+    
+    const length = maxVal - minVal;
+    if (length < 0.0001) return;
+    
+    const curve = new THREE.CatmullRomCurve3(APP.conformWarp.curvePoints);
+    
+    for (let i = 0; i < count; i++) {
+        const ox = origArray[i*3];
+        const oy = origArray[i*3+1];
+        const oz = origArray[i*3+2];
+        
+        let mainVal = 0;
+        let perp1 = 0;
+        let perp2 = 0;
+        
+        if (axis === 'x') {
+            mainVal = ox;
+            perp1 = oy;
+            perp2 = oz;
+        } else if (axis === 'y') {
+            mainVal = oy;
+            perp1 = ox;
+            perp2 = oz;
+        } else {
+            mainVal = oz;
+            perp1 = ox;
+            perp2 = oy;
+        }
+        
+        let u = (mainVal - minVal) / length;
+        u = Math.min(1.0, Math.max(0.0, u));
+        
+        const curvePoint = curve.getPointAt(u);
+        const tangent = curve.getTangentAt(u).normalize();
+        
+        let normal;
+        if (APP.conformWarp.isBrushing && APP.conformWarp.curveNormals && APP.conformWarp.curveNormals.length > 0) {
+            normal = interpolateVectorArray(APP.conformWarp.curveNormals, u).normalize();
+        } else {
+            normal = new THREE.Vector3(0, 1, 0).projectOnPlane(tangent).normalize();
+            if (normal.lengthSq() < 0.001) {
+                normal = new THREE.Vector3(0, 0, 1).projectOnPlane(tangent).normalize();
+            }
+        }
+        normal.projectOnPlane(tangent).normalize();
+        const binormal = new THREE.Vector3().crossVectors(tangent, normal).normalize();
+        
+        const deformedWorld = curvePoint.clone()
+            .addScaledVector(normal, perp1)
+            .addScaledVector(binormal, perp2);
+            
+        const localPos = APP.selected.worldToLocal(deformedWorld);
+        pos.setXYZ(i, localPos.x, localPos.y, localPos.z);
+    }
+    
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+    rebuildWireEdges(APP.selected);
+}
+
+function performConformSnap() {
+    if (!APP.selected) {
+        toast('⚠️ Yapıştırılacak nesneyi seçmelisiniz!', 'warning', 2500);
+        return;
+    }
+    
+    const target = getConformTargetMesh();
+    if (!target) {
+        toast('⚠️ Yüzeyine yapışılacak hedef nesne bulunamadı!', 'warning', 2500);
+        return;
+    }
+    
+    const geo = APP.selected.geometry;
+    const pos = geo.attributes.position;
+    if (!pos) return;
+    
+    if (!APP.selected.userData.origPosition) {
+        APP.selected.userData.origPosition = new Float32Array(pos.array);
+    }
+    const origArray = APP.selected.userData.origPosition;
+    
+    const volumePreserve = el('conformPreserveVolume')?.checked !== false;
+    
+    let minWorldY = Infinity;
+    const tempV = new THREE.Vector3();
+    const count = pos.count;
+    
+    for (let i = 0; i < count; i++) {
+        tempV.set(origArray[i*3], origArray[i*3+1], origArray[i*3+2]);
+        tempV.applyMatrix4(APP.selected.matrixWorld);
+        if (tempV.y < minWorldY) minWorldY = tempV.y;
+    }
+    
+    const otherObjects = [target];
+    const tempRaycaster = new THREE.Raycaster();
+    const rayDir = new THREE.Vector3(0, -1, 0);
+    
+    let hitCount = 0;
+    
+    for (let i = 0; i < count; i++) {
+        tempV.set(origArray[i*3], origArray[i*3+1], origArray[i*3+2]);
+        const origWorldPos = tempV.clone().applyMatrix4(APP.selected.matrixWorld);
+        const height = origWorldPos.y - minWorldY;
+        
+        const rayOrigin = origWorldPos.clone();
+        rayOrigin.y += 100;
+        
+        tempRaycaster.set(rayOrigin, rayDir);
+        const hits = tempRaycaster.intersectObjects(otherObjects, true);
+        
+        if (hits.length > 0) {
+            const hit = hits[0];
+            const hitPoint = hit.point;
+            
+            let conformedWorld;
+            if (volumePreserve) {
+                const hitNormal = hit.face.normal.clone()
+                    .applyMatrix3(new THREE.Matrix3().getNormalMatrix(target.matrixWorld))
+                    .normalize();
+                conformedWorld = hitPoint.clone().addScaledVector(hitNormal, height);
+            } else {
+                conformedWorld = hitPoint.clone();
+            }
+            
+            const localPos = APP.selected.worldToLocal(conformedWorld);
+            pos.setXYZ(i, localPos.x, localPos.y, localPos.z);
+            hitCount++;
+        } else {
+            pos.setXYZ(i, origArray[i*3], origArray[i*3+1], origArray[i*3+2]);
+        }
+    }
+    
+    if (hitCount > 0) {
+        pos.needsUpdate = true;
+        geo.computeVertexNormals();
+        rebuildWireEdges(APP.selected);
+        saveHist('conformWarp');
+        toast(`✓ ${hitCount} tepe noktası hedef yüzeye yapıştırıldı!`, 'success', 2000);
+    } else {
+        toast('⚠️ Hedef nesne üzerinde izdüşüm bulunamadı. Objeyi hedefin üzerine taşıyın.', 'warning', 3000);
+    }
+}
+
+
+/* ════════════════════════════════════════
+   MAGIC STITCH (SİHİRLİ DİKİŞ)
+════════════════════════════════════════ */
+
+/**
+ * Clear all Magic Stitch state and helpers
+ */
+function clearMagicStitch() {
+    if (!APP.magicStitch) return;
+    // Remove preview spheres
+    APP.magicStitch.previewHelpers.forEach(h => {
+        APP.scene.remove(h);
+        if (h.geometry) h.geometry.dispose();
+        if (h.material) h.material.dispose();
+    });
+    APP.magicStitch.previewHelpers = [];
+    
+    // Remove bridge preview line
+    if (APP.magicStitch.bridgePreview) {
+        APP.scene.remove(APP.magicStitch.bridgePreview);
+        if (APP.magicStitch.bridgePreview.geometry) APP.magicStitch.bridgePreview.geometry.dispose();
+        if (APP.magicStitch.bridgePreview.material) APP.magicStitch.bridgePreview.material.dispose();
+        APP.magicStitch.bridgePreview = null;
+    }
+    
+    APP.magicStitch.groupA = [];
+    APP.magicStitch.groupB = [];
+    APP.magicStitch.pickingGroup = 'A';
+    APP.magicStitch.flowPoints = [];
+    APP.magicStitch.isDrawingFlow = false;
+}
+
+/**
+ * Visualize selected vertex groups with colored spheres and a bridge preview line
+ */
+function updateStitchPreview() {
+    const ms = APP.magicStitch;
+    if (!APP.selected) return;
+    const obj = APP.selected;
+    const geo = obj.geometry;
+    const pos = geo.attributes.position;
+    
+    // Clear old previews
+    ms.previewHelpers.forEach(h => {
+        APP.scene.remove(h);
+        if (h.geometry) h.geometry.dispose();
+        if (h.material) h.material.dispose();
+    });
+    ms.previewHelpers = [];
+    
+    if (ms.bridgePreview) {
+        APP.scene.remove(ms.bridgePreview);
+        if (ms.bridgePreview.geometry) ms.bridgePreview.geometry.dispose();
+        if (ms.bridgePreview.material) ms.bridgePreview.material.dispose();
+        ms.bridgePreview = null;
+    }
+    
+    const createSphere = (idx, color) => {
+        const sg = new THREE.SphereGeometry(0.08, 8, 8);
+        const sm = new THREE.MeshBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.85 });
+        const sphere = new THREE.Mesh(sg, sm);
+        sphere.renderOrder = 9999;
+        const lx = pos.getX(idx), ly = pos.getY(idx), lz = pos.getZ(idx);
+        const wPos = new THREE.Vector3(lx, ly, lz).applyMatrix4(obj.matrixWorld);
+        sphere.position.copy(wPos);
+        APP.scene.add(sphere);
+        ms.previewHelpers.push(sphere);
+    };
+    
+    // Group A — green
+    ms.groupA.forEach(idx => createSphere(idx, 0x3fb950));
+    // Group B — orange
+    ms.groupB.forEach(idx => createSphere(idx, 0xf0883e));
+    
+    // Draw a bridge preview line between group centers
+    if (ms.groupA.length > 0 && ms.groupB.length > 0) {
+        const centerA = new THREE.Vector3();
+        const centerB = new THREE.Vector3();
+        
+        ms.groupA.forEach(idx => {
+            centerA.add(new THREE.Vector3(pos.getX(idx), pos.getY(idx), pos.getZ(idx)));
+        });
+        centerA.divideScalar(ms.groupA.length).applyMatrix4(obj.matrixWorld);
+        
+        ms.groupB.forEach(idx => {
+            centerB.add(new THREE.Vector3(pos.getX(idx), pos.getY(idx), pos.getZ(idx)));
+        });
+        centerB.divideScalar(ms.groupB.length).applyMatrix4(obj.matrixWorld);
+        
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([centerA, centerB]);
+        const lineMat = new THREE.LineDashedMaterial({
+            color: 0x58a6ff, dashSize: 0.3, gapSize: 0.15, depthTest: false
+        });
+        const line = new THREE.Line(lineGeo, lineMat);
+        line.computeLineDistances();
+        line.renderOrder = 9998;
+        APP.scene.add(line);
+        ms.bridgePreview = line;
+    }
+}
+
+/**
+ * Sort vertices along a principal axis to form an ordered boundary chain
+ */
+function sortVerticesAlongAxis(vertexIndices, posAttr) {
+    if (vertexIndices.length <= 2) return vertexIndices;
+    
+    const positions = vertexIndices.map(idx => ({
+        idx,
+        pos: new THREE.Vector3(posAttr.getX(idx), posAttr.getY(idx), posAttr.getZ(idx))
+    }));
+    
+    // Find the principal axis using the spread/extent of vertices
+    const min = new THREE.Vector3(Infinity, Infinity, Infinity);
+    const max = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+    positions.forEach(p => {
+        min.min(p.pos);
+        max.max(p.pos);
+    });
+    const extent = max.clone().sub(min);
+    
+    // Sort along the axis with the largest extent
+    let sortAxis;
+    if (extent.x >= extent.y && extent.x >= extent.z) sortAxis = 'x';
+    else if (extent.y >= extent.x && extent.y >= extent.z) sortAxis = 'y';
+    else sortAxis = 'z';
+    
+    positions.sort((a, b) => a.pos[sortAxis] - b.pos[sortAxis]);
+    return positions.map(p => p.idx);
+}
+
+/**
+ * Sample N evenly-spaced values from an array of vertex indices (for mismatched counts)
+ */
+function resampleVertexChain(vertexIndices, targetCount, posAttr) {
+    if (vertexIndices.length === targetCount) return vertexIndices;
+    if (vertexIndices.length === 0 || targetCount <= 0) return [];
+    
+    const result = [];
+    for (let i = 0; i < targetCount; i++) {
+        const t = vertexIndices.length <= 1 ? 0 : (i / (targetCount - 1)) * (vertexIndices.length - 1);
+        const idx = Math.min(Math.round(t), vertexIndices.length - 1);
+        result.push(vertexIndices[idx]);
+    }
+    return result;
+}
+
+/**
+ * Perform Magic Stitch: bridge two vertex groups with new quad/tri geometry
+ */
+function performMagicStitch() {
+    const ms = APP.magicStitch;
+    if (!APP.selected) {
+        toast('⚠️ Lütfen önce bir mesh seçin.', 'warning', 2000);
+        return;
+    }
+    if (ms.groupA.length === 0 || ms.groupB.length === 0) {
+        toast('⚠️ İki kenar grubu da seçilmeli. Mesh üzerinde iki bölgeye tıklayın.', 'warning', 2500);
+        return;
+    }
+    
+    const obj = APP.selected;
+    const geo = obj.geometry;
+    const pos = geo.attributes.position;
+    const segments = parseInt(el('stitchSegments')?.value) || 6;
+    const preferQuads = el('stitchQuadPref')?.checked !== false;
+    const autoReduce = el('stitchAutoReduce')?.checked !== false;
+    const mode = el('stitchMode')?.value || 'bridge';
+    
+    // Sort vertex groups along their principal axis
+    let chainA = sortVerticesAlongAxis([...ms.groupA], pos);
+    let chainB = sortVerticesAlongAxis([...ms.groupB], pos);
+    
+    const countA = chainA.length;
+    const countB = chainB.length;
+    
+    // Determine the max resolution
+    const maxCount = Math.max(countA, countB);
+    const minCount = Math.min(countA, countB);
+    
+    // Resample chains to have equal vertex count for quad bridging
+    let workingA, workingB;
+    if (autoReduce && countA !== countB) {
+        // Resample shorter chain to match longer one
+        if (countA > countB) {
+            workingA = chainA;
+            workingB = resampleVertexChain(chainB, countA, pos);
+        } else {
+            workingA = resampleVertexChain(chainA, countB, pos);
+            workingB = chainB;
+        }
+    } else {
+        // Without auto-reduce, use min count for both
+        const useCount = minCount;
+        workingA = resampleVertexChain(chainA, useCount, pos);
+        workingB = resampleVertexChain(chainB, useCount, pos);
+    }
+    
+    const bridgeCount = workingA.length;
+    if (bridgeCount < 2) {
+        toast('⚠️ En az 2 vertex olmalı. Yarıçapı artırın.', 'warning', 2000);
+        return;
+    }
+    
+    // Get existing vertex positions  
+    const oldVertCount = pos.count;
+    const oldPositions = [];
+    for (let i = 0; i < oldVertCount; i++) {
+        oldPositions.push(pos.getX(i), pos.getY(i), pos.getZ(i));
+    }
+    
+    // Generate intermediate points for segments > 1
+    const newPositions = [];
+    const rows = []; // each row is an array of global vertex indices
+    
+    // Row 0 = chain A vertices (already exist)
+    rows.push(workingA.slice());
+    
+    // Intermediate rows (new vertices)
+    if (mode === 'bridge' && segments > 1) {
+        for (let s = 1; s < segments; s++) {
+            const t = s / segments;
+            const row = [];
+            for (let i = 0; i < bridgeCount; i++) {
+                const ai = workingA[i];
+                const bi = workingB[i];
+                const ax = pos.getX(ai), ay = pos.getY(ai), az = pos.getZ(ai);
+                const bx = pos.getX(bi), by = pos.getY(bi), bz = pos.getZ(bi);
+                // Linear interpolation (with slight sag for organic feel)
+                const mx = ax + (bx - ax) * t;
+                const my = ay + (by - ay) * t;
+                const mz = az + (bz - az) * t;
+                
+                const newIdx = oldVertCount + newPositions.length / 3;
+                newPositions.push(mx, my, mz);
+                row.push(newIdx);
+            }
+            rows.push(row);
+        }
+    }
+    
+    // Last row = chain B vertices (already exist)
+    rows.push(workingB.slice());
+    
+    // Build new index buffer with bridging faces
+    const oldIndex = geo.index;
+    const existingIndices = [];
+    if (oldIndex) {
+        for (let i = 0; i < oldIndex.count; i++) {
+            existingIndices.push(oldIndex.getX(i));
+        }
+    }
+    
+    const newIndices = [...existingIndices];
+    
+    // Create faces between consecutive rows
+    for (let r = 0; r < rows.length - 1; r++) {
+        const topRow = rows[r];
+        const botRow = rows[r + 1];
+        const rowLen = Math.min(topRow.length, botRow.length);
+        
+        for (let i = 0; i < rowLen - 1; i++) {
+            const a = topRow[i];     // top-left
+            const b = topRow[i + 1]; // top-right
+            const c = botRow[i + 1]; // bottom-right
+            const d = botRow[i];     // bottom-left
+            
+            if (preferQuads) {
+                // Two triangles forming a quad: a-b-c and a-c-d
+                newIndices.push(a, b, c);
+                newIndices.push(a, c, d);
+            } else {
+                // Just triangles
+                newIndices.push(a, b, d);
+                newIndices.push(b, c, d);
+            }
+        }
+    }
+    
+    // Rebuild the position buffer if we have new vertices
+    if (newPositions.length > 0) {
+        const allPositions = new Float32Array(oldPositions.length + newPositions.length);
+        allPositions.set(new Float32Array(oldPositions));
+        allPositions.set(new Float32Array(newPositions), oldPositions.length);
+        geo.setAttribute('position', new THREE.BufferAttribute(allPositions, 3));
+        
+        // Extend normal buffer
+        const oldNormals = geo.attributes.normal;
+        if (oldNormals) {
+            const newNormalsArr = new Float32Array(allPositions.length);
+            for (let i = 0; i < oldNormals.count * 3; i++) {
+                newNormalsArr[i] = oldNormals.array[i];
+            }
+            geo.setAttribute('normal', new THREE.BufferAttribute(newNormalsArr, 3));
+        }
+        
+        // Extend color buffer if exists
+        const oldColors = geo.attributes.color;
+        if (oldColors) {
+            const newColorsArr = new Float32Array(allPositions.length);
+            const defaultColor = [0.8, 0.8, 0.8]; // Default gray
+            for (let i = 0; i < oldColors.count * 3; i++) {
+                newColorsArr[i] = oldColors.array[i];
+            }
+            for (let i = oldColors.count * 3; i < newColorsArr.length; i += 3) {
+                newColorsArr[i] = defaultColor[0];
+                newColorsArr[i + 1] = defaultColor[1];
+                newColorsArr[i + 2] = defaultColor[2];
+            }
+            geo.setAttribute('color', new THREE.BufferAttribute(newColorsArr, 3));
+        }
+    }
+    
+    // Set new index buffer
+    geo.setIndex(new THREE.BufferAttribute(new Uint32Array(newIndices), 1));
+    
+    // Recompute
+    geo.computeVertexNormals();
+    geo.computeBoundingSphere();
+    geo.computeBoundingBox();
+    geo.attributes.position.needsUpdate = true;
+    if (geo.attributes.normal) geo.attributes.normal.needsUpdate = true;
+    if (geo.attributes.color) geo.attributes.color.needsUpdate = true;
+    
+    // Cache updated positions for undo
+    const newPos = geo.attributes.position;
+    const origArr = new Float32Array(newPos.count * 3);
+    for (let i = 0; i < newPos.count; i++) {
+        origArr[i * 3] = newPos.getX(i);
+        origArr[i * 3 + 1] = newPos.getY(i);
+        origArr[i * 3 + 2] = newPos.getZ(i);
+    }
+    obj.userData.origPosition = origArr;
+    
+    // Rebuild wireframe
+    if (typeof rebuildWireEdges === 'function') rebuildWireEdges(obj);
+    
+    // Save history
+    if (typeof saveHist === 'function') saveHist('magicStitch');
+    
+    const faceCount = (newIndices.length - existingIndices.length) / 3;
+    const newVertCount = newPositions.length / 3;
+    
+    // Clean up preview
+    clearMagicStitch();
+    updateStitchPreview();
+    
+    toast(`🧵 Dikiş tamamlandı! ${faceCount} yeni yüzey, ${newVertCount} yeni vertex oluşturuldu.`, 'success', 3000);
+    
+    // Update info panel
+    if (typeof updateInfoPanel === 'function') updateInfoPanel();
+}
+
+// Magic Stitch button bindings
+document.addEventListener('DOMContentLoaded', () => {
+    const btnApply = document.getElementById('btnStitchApply');
+    const btnClear = document.getElementById('btnStitchClear');
+    
+    if (btnApply) {
+        btnApply.addEventListener('click', () => {
+            performMagicStitch();
+        });
+    }
+    
+    if (btnClear) {
+        btnClear.addEventListener('click', () => {
+            clearMagicStitch();
+            toast('🧹 Dikiş seçimleri temizlendi.', 'info', 1500);
+        });
+    }
+});
+
 
 // Delayed init
 setTimeout(()=>{saveHist('init');updateUndoRedo();},300);

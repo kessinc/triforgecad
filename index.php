@@ -205,6 +205,24 @@
                     <path d="M12 6C15.31 6 18 8.69 18 12C18 14 17 15.5 15.5 17C14 18.5 13 20 12 20" stroke-dasharray="2,2" />
                 </svg>
             </button>
+            <button class="lt-btn" id="ltConformWarp" data-tool="conformWarp" title="Yüzey Bükücü & Mıknatısı (Conform Warp)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 18s3-4 10-4 10 4 10 4" />
+                    <path d="M2 10s3-4 10-4 10 4 10 4" stroke-dasharray="2 2" />
+                    <path d="M12 2v4M12 14v4" />
+                    <path d="m15 4-3-3-3 3" />
+                </svg>
+            </button>
+            <button class="lt-btn" id="ltMagicStitch" data-tool="magicStitch" title="Sihirli Dikiş (Magic Stitch) — Kenar Köprüleme">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4v4M4 8v4M4 12v4" />
+                    <path d="M20 6v4M20 10v4" />
+                    <path d="M4 4C10 4 14 6 20 6" stroke-dasharray="2 2" />
+                    <path d="M4 8C10 9 14 8 20 10" />
+                    <path d="M4 12C10 13 14 12 20 14" stroke-dasharray="2 2" />
+                    <path d="M4 16C10 16 14 14 20 14" />
+                </svg>
+            </button>
             <button class="lt-btn" id="ltSurfaceSnap" title="Yüzey Yapışması / Çakışma Önleme">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M5 10V4C5 2.9 5.9 2 7 2H17C18.1 2 19 2.9 19 4V10" />
@@ -1212,6 +1230,95 @@
                             </div>
                             <div class="lp-info-box">
                                 <small>Sol tıklayıp sürükleyerek objenin yapısını 3D olarak yoğurun.</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Conform Warp Options -->
+                        <div class="tool-opt-card" id="optConformWarp" style="display:none;">
+                            <div class="lp-row">
+                                <label>Eğri Kılavuz Modu</label>
+                                <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                    <button class="sqk" id="btnConformDrawCurve" style="flex: 1; padding: 6px;" title="Ekran üzerinde serbestçe eğri çizin">✍️ Eğri Çiz</button>
+                                    <button class="sqk" id="btnConformClearCurve" style="padding: 6px 12px; background: var(--red); color: white;" title="Çizilen eğriyi temizleyin ve objeyi sıfırlayın">Temizle</button>
+                                </div>
+                            </div>
+                            <div class="lp-row" style="margin-top: 8px;">
+                                <label>Deformasyon Ekseni</label>
+                                <select id="conformAxis" class="lp-sel" style="width: 100%;">
+                                    <option value="x" selected>X Ekseni (Boyunca)</option>
+                                    <option value="y">Y Ekseni (Boyunca)</option>
+                                    <option value="z">Z Ekseni (Boyunca)</option>
+                                </select>
+                            </div>
+                            <div style="margin: 12px 0; border-top: 1px solid rgba(255,255,255,0.08);"></div>
+                            <div class="lp-row">
+                                <label>Mıknatıs Hedef Nesne</label>
+                                <select id="conformTarget" class="lp-sel" style="width: 100%;">
+                                    <option value="">-- Otomatik Algıla --</option>
+                                </select>
+                            </div>
+                            <div class="lp-row" style="margin-top: 8px; display: flex; align-items: center;">
+                                <label for="conformPreserveVolume" style="flex: 1;">Hacim & Detay Koru</label>
+                                <input type="checkbox" id="conformPreserveVolume" checked style="width: 18px; height: 18px; cursor: pointer;">
+                            </div>
+                            <div style="display: flex; gap: 4px; margin-top: 8px;">
+                                <button class="sqk" id="btnConformSnap" style="flex: 1; padding: 8px; background: var(--blu2); color: white;" title="Mıknatıs hizalamayı başlat">🧲 Yüzeye Yapıştır</button>
+                            </div>
+                            <div style="margin: 12px 0; border-top: 1px solid rgba(255,255,255,0.08);"></div>
+                            <div class="lp-row">
+                                <label>Fırça İle Sürükle & Akıt</label>
+                                <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                    <button class="sqk" id="btnConformBrush" style="flex: 1; padding: 8px;" title="Yüzey üzerinde mesh'i akıtarak sürükleme">🖌️ Yüzeyde Fırçala</button>
+                                </div>
+                            </div>
+                            <div class="lp-row" style="margin-top: 8px;">
+                                <label>Fırça Yarıçapı</label>
+                                <input type="range" id="conformBrushRadius" min="10" max="200" value="50" class="lp-range">
+                            </div>
+                            <div class="lp-info-box" style="margin-top: 8px;">
+                                <small>
+                                    <strong>Eğri Kılavuzu:</strong> ✍️ Eğri Çiz'e basıp ekranda sürükleyin. Model o eğrinin formuna bükülür.<br>
+                                    <strong>Yüzey Mıknatısı:</strong> Bir hedef model seçip 🧲 butonuna basın. Modelin tabanı yüzeye yapışırken detaylar ezilmez.<br>
+                                    <strong>Fırça:</strong> 🖌️ Fırçala'yı açıp hedef yüzeyde sürükleyin; model sıvı gibi yüzeye yayılır.
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Magic Stitch Options -->
+                        <div class="tool-opt-card" id="optMagicStitch" style="display:none;">
+                            <div class="lp-row">
+                                <label>Dikiş Modu</label>
+                                <select id="stitchMode" class="lp-sel" style="width: 100%;">
+                                    <option value="bridge" selected>Köprü Dikiş (Bridge)</option>
+                                    <option value="fill">Alan Doldurma (Fill)</option>
+                                </select>
+                            </div>
+                            <div class="lp-row" style="margin-top: 8px;">
+                                <label>Kenar Algılama Yarıçapı</label>
+                                <input type="range" id="stitchRadius" min="2" max="80" value="20" class="lp-range">
+                            </div>
+                            <div class="lp-row" style="margin-top: 8px;">
+                                <label>Çözünürlük (Segment Sayısı)</label>
+                                <input type="range" id="stitchSegments" min="1" max="20" value="6" class="lp-range">
+                            </div>
+                            <div class="lp-row" style="margin-top: 8px; display: flex; align-items: center;">
+                                <label for="stitchQuadPref" style="flex: 1;">Dörtgen (Quad) Tercih Et</label>
+                                <input type="checkbox" id="stitchQuadPref" checked style="width: 18px; height: 18px; cursor: pointer;">
+                            </div>
+                            <div class="lp-row" style="margin-top: 8px; display: flex; align-items: center;">
+                                <label for="stitchAutoReduce" style="flex: 1;">Otomatik Çözünürlük Geçişi</label>
+                                <input type="checkbox" id="stitchAutoReduce" checked style="width: 18px; height: 18px; cursor: pointer;">
+                            </div>
+                            <div style="display: flex; gap: 4px; margin-top: 10px;">
+                                <button class="sqk" id="btnStitchApply" style="flex: 1; padding: 8px; background: var(--grn2); color: white;" title="İki kenar grubu arasına dikiş at">🧵 Dikiş At</button>
+                                <button class="sqk" id="btnStitchClear" style="padding: 8px 12px; background: var(--red); color: white;" title="Seçimleri ve önizlemeyi temizle">Temizle</button>
+                            </div>
+                            <div class="lp-info-box" style="margin-top: 8px;">
+                                <small>
+                                    <strong>Kullanım:</strong> Mesh üzerinde birinci kenar bölgesine tıklayın (ilk grup yeşil), ardından ikinci kenar bölgesine tıklayın (ikinci grup turuncu). Araç iki grubun vertex sayısı farklı olsa bile aralarını düzgün poligonlarla doldurur.<br>
+                                    <strong>Akış Yönlendirme:</strong> Sürükleyerek dikişin kavis yönünü belirleyebilirsiniz.<br>
+                                    <strong>Oto-Geçiş:</strong> Yoğundan seyrek bölgeye geçerken akıllı geçiş poligonları oluşturur.
+                                </small>
                             </div>
                         </div>
                     </div>

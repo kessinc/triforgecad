@@ -446,3 +446,21 @@ input,select,textarea{font-family:inherit;font-size:12px}
     border-color: rgba(227, 179, 65, 0.5) !important;
 }
 
+/* Conform Warp active button styling */
+.sqk.active {
+    background: var(--blu2) !important;
+    color: white !important;
+    border-color: var(--blu) !important;
+    box-shadow: 0 0 8px rgba(88, 166, 255, 0.4);
+}
+#ltConformWarp.active {
+    background: rgba(88, 166, 255, 0.15) !important;
+    color: var(--blu) !important;
+    border-color: rgba(88, 166, 255, 0.5) !important;
+}
+#ltMagicStitch.active {
+    background: rgba(63, 185, 80, 0.15) !important;
+    color: var(--grn) !important;
+    border-color: rgba(63, 185, 80, 0.5) !important;
+}
+
